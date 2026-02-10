@@ -1,0 +1,1 @@
+timestamp,vehicleId,towerId,signalQuality,distance,vehiclePosition- x,vehiclePosition- y,vehiclePosition- z,towerPosition- x,towerPosition- y,towerPosition- z,vehicleSpeed,vehicleDirection,towerLoad,rssi,predictedLSTM
