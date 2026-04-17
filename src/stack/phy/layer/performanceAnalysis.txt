@@ -950,3 +950,71 @@ Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Si
 
 Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
 
+testHODecisionByScalarCount: 625 testHODecisionBySpeedCount: 2823 totalScalarParaConditionedPassed: 891 testMasterIDCount: 182 testTotalClosestTowerFound: 2305Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3154 Avg Num of Intra-VC HO: 3.30608
+
+INTRA VC: Cumulative Time: 40.3, Avg INTRA VC HO Time: 0.0127774
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 3154 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 14 Avg Num of Inter-VC HO: 0.0146751
+
+INTER VC: Cumulative Time: 33.9, Avg INTER VC HO Time: 2.42143
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 14 Percentage: 1
+Speed Category: SPEED_2140 Total: 0 Percentage: 0
+Speed Category: SPEED_4160 Total: 0 Percentage: 0
+Speed Category: SPEED_6180 Total: 0 Percentage: 0
+Speed Category: SPEED_81100 Total: 0 Percentage: 0
+Speed Category: SPEED_101120 Total: 0 Percentage: 0
+Speed Category: SPEED_121140 Total: 0 Percentage: 0
+Speed Category: SPEED_141160 Total: 0 Percentage: 0
+Speed Category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 280, Avg Num of Ping Pong HO: 0.293501
+
+Total Virtual Cell: 6508 VC Size Ratio: 0.068218
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 6508 Total Vehicle: 4481 Average Size: 1.45235
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+

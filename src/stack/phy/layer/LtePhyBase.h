@@ -334,6 +334,7 @@ class LtePhyBase : public ChannelAccess
      */
     int getReceiverGateIndex(const omnetpp::cModule*, bool isNr) const;
 
+
   public:
     /*
      * Returns the current position of the node

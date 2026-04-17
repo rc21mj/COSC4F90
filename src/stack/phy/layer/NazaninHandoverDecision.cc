@@ -271,7 +271,7 @@ void NazaninHandoverDecision::runLSTM() {
 ////////////////////////Ritika///////////////////////////////
 void NazaninHandoverDecision::runTGNN() {
     std::string pypredTGNNFile;
-    std::string pypredTGNN_CmdPyCpp = "python3 " + baseFilePath + "predTGNN.py";
+    std::string pypredTGNN_CmdPyCpp = "python3 " + baseFilePath + "infer_proper_tgnn.py";
     pypredTGNN_CmdPyCpp += pypredTGNNFile;
     system(pypredTGNN_CmdPyCpp.c_str());
 }
@@ -285,25 +285,103 @@ void NazaninHandoverDecision::runTGNN() {
 //}
 
 void NazaninHandoverDecision::runTGNNdiff() {
-    static bool tgnnDiffStarted = false;
-    if (tgnnDiffStarted) {
+    static bool properTGNNStarted = false;
+    if (properTGNNStarted) {
         return; // don't spawn again
     }
-    tgnnDiffStarted = true;
+    properTGNNStarted = true;
 
     // If you actually need args, build them into pypredTGNNdiffFile first
-    std::string pypredTGNNdiffFile; // currently empty in your code
+    //std::string pypredTGNNdiffFile; // currently empty in your code
 
-    std::string cmd = "python3 " + baseFilePath + "predTGNNdiff.py";
-    cmd += pypredTGNNdiffFile;
+    std::string cmd = "python3 " + baseFilePath + "infer_proper_tgnn.py";
+    //cmd += pypredTGNNdiffFile;
 
     // IMPORTANT: run in background so OMNeT++ doesn't block
-    cmd += " > /tmp/predTGNNdiff.log 2>&1 &";
+    cmd += " > /tmp/properTGNN.log 2>&1 &";
 
     int ret = std::system(cmd.c_str());
-    EV_INFO << "[TGNNdiff] Started predTGNNdiff.py async, system() returned " << ret << "\n";
+    EV_INFO << "[ProperTGNN] Started infer_proper_tgnn.py async, system() returned " << ret << "\n";
 }
 
+void NazaninHandoverDecision::runProperTGNN() {
+    static bool properTGNNStarted = false;
+    if (properTGNNStarted) {
+        return; // don't spawn again
+    }
+    properTGNNStarted = true;
+
+    std::string cmd = "python3 " + baseFilePath + "infer_proper_tgnn.py";
+
+    // run in background so OMNeT++ does not block
+    cmd += " > /tmp/properTGNN.log 2>&1 &";
+
+    int ret = std::system(cmd.c_str());
+    EV_INFO << "[ProperTGNN] Started infer_proper_tgnn.py async, system() returned " << ret << "\n";
+}
+
+std::vector<std::pair<int,double>> NazaninHandoverDecision::readProperTGNNOutput(const std::string& filepath)
+{
+    std::vector<std::pair<int,double>> results;
+    std::ifstream in(filepath);
+    std::string line;
+
+    while (std::getline(in, line)) {
+        std::stringstream ss(line);
+        std::string towerStr, scoreStr;
+
+        if (std::getline(ss, towerStr, ',') && std::getline(ss, scoreStr)) {
+            int towerId = std::stoi(towerStr);
+            double score = std::stod(scoreStr);
+            results.push_back({towerId, score});
+        }
+    }
+    return results;
+}
+
+void NazaninHandoverDecision::appendTGNNRow(const TGNNRow& row)
+{
+    auto& hist = tgnnHistory[row.vehicleId];
+    hist.push_back(row);
+
+    while ((int)hist.size() > tgnnSeqLen) {
+        hist.pop_front();
+    }
+}
+
+void NazaninHandoverDecision::writeTGNNRuntimeWindow(int vehicleId, const std::string& filepath)
+{
+    std::ofstream out(filepath);
+    out << "timestamp,vehicleId,masterId,candidateMasterId,masterDistance,candidateDistance,"
+           "masterRSSI,candidateRSSI,masterSINR,candidateSINR,masterRSRP,candidateRSRP,"
+           "masterSpeed,candidateSpeed,vehicleDirection,vehiclePosition-x,vehiclePosition-y,"
+           "towerload\n";
+
+    auto it = tgnnHistory.find(vehicleId);
+    if (it == tgnnHistory.end()) return;
+
+    for (const auto& r : it->second) {
+        out << r.timestamp << ","
+            << r.vehicleId << ","
+            << r.masterId << ","
+            << r.candidateMasterId << ","
+            << r.masterDistance << ","
+            << r.candidateDistance << ","
+            << r.masterRSSI << ","
+            << r.candidateRSSI << ","
+            << r.masterSINR << ","
+            << r.candidateSINR << ","
+            << r.masterRSRP << ","
+            << r.candidateRSRP << ","
+            << r.masterSpeed << ","
+            << r.candidateSpeed << ","
+            << r.vehicleDirection << ","
+            << r.vehiclePosX << ","
+            << r.vehiclePosY << ","
+            << r.towerload
+            << "\n";
+    }
+}
 
 void NazaninHandoverDecision::runSVR(unsigned short  vehicleID, int simTime) {
 

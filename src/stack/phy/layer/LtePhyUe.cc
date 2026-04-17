@@ -428,6 +428,72 @@ double LtePhyUe::calculateEachTowerLoad(int vehiclesConnectedToTower, int totalV
         return -1.0; // Return a special value to indicate an error
     }
 }
+
+//Ritika functions
+void LtePhyUe::appendProperTGNNRow(const ProperTGNNRow& row)
+{
+    properTGNNWindow_.push_back(row);
+
+    while ((int)properTGNNWindow_.size() > PROPER_TGNN_STEPS) {
+        properTGNNWindow_.pop_front();
+    }
+}
+
+bool LtePhyUe::writeProperTGNNWindowToFile(const std::string& filepath)
+{
+    if ((int)properTGNNWindow_.size() < PROPER_TGNN_STEPS) {
+        EV_WARN << "[ProperTGNN] Not enough rows to write runtime window. size="
+                << properTGNNWindow_.size() << " required=" << PROPER_TGNN_STEPS << endl;
+        return false;
+    }
+
+    std::ofstream out(filepath.c_str());
+    if (!out.is_open()) {
+        EV_ERROR << "[ProperTGNN] Failed to open runtime window file: " << filepath << endl;
+        return false;
+    }
+
+    out << "timestamp,vehicleId,masterId,candidateMasterId,"
+           "masterDistance,candidateDistance,"
+           "masterSpeed,candidateSpeed,"
+           "vehicleDirection,"
+           "vehiclePosition-x,vehiclePosition-y,"
+           "towerload,"
+           "masterRSSI,candidateRSSI,"
+           "masterSINR,candidateSINR,"
+           "masterRSRP,candidateRSRP\n";
+
+    for (const auto& r : properTGNNWindow_) {
+        out << r.timestamp << ","
+            << r.vehicleId << ","
+            << r.masterId << ","
+            << r.candidateMasterId << ","
+            << r.masterDistance << ","
+            << r.candidateDistance << ","
+            << r.masterSpeed << ","
+            << r.candidateSpeed << ","
+            << r.vehicleDirection << ","
+            << r.vehiclePosX << ","
+            << r.vehiclePosY << ","
+            << r.towerload << ","
+            << r.masterRSSI << ","
+            << r.candidateRSSI << ","
+            << r.masterSINR << ","
+            << r.candidateSINR << ","
+            << r.masterRSRP << ","
+            << r.candidateRSRP
+            << "\n";
+    }
+
+    out.close();
+
+    EV_INFO << "[ProperTGNN] Wrote runtime window with "
+            << properTGNNWindow_.size() << " rows to " << filepath << endl;
+
+    return true;
+}
+
+
 ////////////////////////////////////////////////////////
 //only called in (NRPhyUe::handleAirFrame)
 void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
@@ -566,6 +632,45 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
      //std::cout << "length of inputLSTMDataArray: " << inputLSTMDataArray.size()  << std::endl;
 
 /////////////Ritika
+
+     {
+         ProperTGNNRow properRow;
+
+         properRow.timestamp = simTime().dbl();
+         properRow.vehicleId = getMacNodeId();
+         properRow.masterId = masterId_;
+         properRow.candidateMasterId = candidateMasterId_;
+
+         properRow.masterDistance = currentMasterDist_;
+         properRow.candidateDistance = distanceDouble;
+
+         properRow.masterSpeed = currentMasterSpeed_;
+         properRow.candidateSpeed = speedDouble;   // replace if you have a true candidate speed
+         properRow.vehicleDirection = dirMacNodeId;
+
+         properRow.vehiclePosX = vPositionx;
+         properRow.vehiclePosY = vPositiony;
+
+         properRow.towerload = towerload;
+
+         properRow.masterRSSI = currentMasterRssi_;
+         properRow.candidateRSSI = rssi;
+
+         properRow.masterSINR = currentMasterSinr_;
+         properRow.candidateSINR = maxSINR;
+
+         properRow.masterRSRP = currentMasterRsrp_;
+         properRow.candidateRSRP = maxRSRP;
+
+         appendProperTGNNRow(properRow);
+
+         if ((int)properTGNNWindow_.size() == PROPER_TGNN_STEPS) {
+             std::string properInputFile = baseFilePath + "runtime_tgnn_window.csv";
+             writeProperTGNNWindowToFile(properInputFile);
+         }
+     }
+
+
        if (((int)simTime().dbl() % 13 == 0) || ((int)simTime().dbl() % 14 == 0))
        {
            inputLSTMTestDataArray.push_back(scalPara);
@@ -583,6 +688,7 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
            HoMng->runLSTM();
            HoMng->runTGNN();   //Ritika
            HoMng->runTGNNdiff();  ///Ritika TGNN diff code
+           HoMng->runProperTGNN();  ///Ritika TGNN diff code
            lstmSimTime = simTime().dbl();
 //           predScaValLSTM = HoMng->getParfromFile(baseFilePath+"outputLSTM.txt"); // Update for each vehicle separately. as "predScaValLSTM" is declared in .h file
        }

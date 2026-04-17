@@ -25,6 +25,9 @@
 #include <ctime>
 #include <vector>
 #include <numeric>
+#include <deque>
+#include <map>
+#include <string>
 
 #ifndef STACK_PHY_LAYER_NAZANINHANDOVERDECISION_H_
 #define STACK_PHY_LAYER_NAZANINHANDOVERDECISION_H_
@@ -48,6 +51,29 @@ public:
         std::map<int, std::pair<double, double> >  Tower_Position = { { 1, {834,1041}}, { 2, {2496,1155} }, { 3, {4293,1155} },{ 4, {734,2389} },{ 5, {2225,2289} },{ 6, {3566,2389} },{ 7, {1233,3580} },{ 8, {2391,3372} },{ 9, {3162,3672} },{ 10, {4393,2995} } };
     //
     //
+        struct TGNNRow {
+            double timestamp;
+            int vehicleId;
+            int masterId;
+            int candidateMasterId;
+            double masterDistance;
+            double candidateDistance;
+            double masterRSSI;
+            double candidateRSSI;
+            double masterSINR;
+            double candidateSINR;
+            double masterRSRP;
+            double candidateRSRP;
+            double masterSpeed;
+            double candidateSpeed;
+            double vehicleDirection;
+            double vehiclePosX;
+            double vehiclePosY;
+            double towerload;
+        };
+
+        std::map<int, std::deque<TGNNRow>> tgnnHistory;
+        int tgnnSeqLen = 10;
         std::tuple<double, double, double, double> calculateMetrics(LteChannelModel* primaryChannelModel_, LteAirFrame* frame, UserControlInfo* lteInfo);
         double getParfromFile(std::string filepath);
         std::tuple<double, double> getParfromFileForSVR(std::string filepath);
@@ -59,6 +85,10 @@ public:
         void runLSTM();
         void runTGNN();
         void runTGNNdiff();
+        void runProperTGNN();
+        std::vector<std::pair<int,double>> readProperTGNNOutput(const std::string& filepath);
+        void appendTGNNRow(const TGNNRow& row);
+        void writeTGNNRuntimeWindow(int vehicleId, const std::string& filepath);
         void runSVR(unsigned short vehicleID, int simTime);
         SpeedCategory getSpeedCategory(double vSpeed);
         void calculateReward(double& rewd, double rssi, double avgLoad, double distanceDouble, std::vector<MacNodeId>& last_srv_MasterIdV);

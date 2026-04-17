@@ -24,6 +24,8 @@
 #include <vector>
 #include <numeric>
 #include <map>
+#include <deque>
+#include <string>
 
 
 
@@ -31,6 +33,42 @@ class DasFilter;
 
 class LtePhyUe : public LtePhyBase
 {
+  struct ProperTGNNRow
+    {
+        double timestamp = 0.0;
+        int vehicleId = 0;
+        int masterId = 0;
+        int candidateMasterId = 0;
+
+        double masterDistance = 0.0;
+        double candidateDistance = 0.0;
+
+        double masterSpeed = 0.0;
+        double candidateSpeed = 0.0;
+
+        double vehicleDirection = 0.0;
+        double vehiclePosX = 0.0;
+        double vehiclePosY = 0.0;
+
+        double towerload = 0.0;
+
+        double masterRSSI = 0.0;
+        double candidateRSSI = 0.0;
+
+        double masterSINR = 0.0;
+        double candidateSINR = 0.0;
+
+
+        double masterRSRP = 0.0;
+        double candidateRSRP = 0.0;
+    };
+
+  private:
+        static const int PROPER_TGNN_STEPS = 10;
+        std::deque<ProperTGNNRow> properTGNNWindow_;
+
+        void appendProperTGNNRow(const ProperTGNNRow& row);
+        bool writeProperTGNNWindowToFile(const std::string& filepath);
   protected:
     LtePhyUe* otherPhy_;
 
