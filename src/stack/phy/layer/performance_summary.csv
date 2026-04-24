@@ -1,0 +1,3 @@
+model,pdr,plr,handovers,ping_pong,throughput_mbps,total_vehicles,intra_ho,inter_ho,failed_ho,ping_pong_global
+tgnn,0.98728,0.0127204,330,330,147.993,954,50,0,0,0
+lstm,0.98728,0.0127204,132,81,147.993,954,50,0,0,0

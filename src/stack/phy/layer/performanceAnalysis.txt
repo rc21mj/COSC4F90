@@ -1018,3 +1018,516 @@ Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Si
 
 Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
 
+testHODecisionByScalarCount: 649 testHODecisionBySpeedCount: 2802 totalScalarParaConditionedPassed: 918 testMasterIDCount: 181 testTotalClosestTowerFound: 2455 Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3200 Avg Num of Intra-VC HO: 3.3543
+
+INTRA VC: Cumulative Time: 41.35, Avg INTRA VC HO Time: 0.0129219
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 3200 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 14 Avg Num of Inter-VC HO: 0.0146751
+
+INTER VC: Cumulative Time: 37.15, Avg INTER VC HO Time: 2.65357
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 14 Percentage: 1
+Speed Category: SPEED_2140 Total: 0 Percentage: 0
+Speed Category: SPEED_4160 Total: 0 Percentage: 0
+Speed Category: SPEED_6180 Total: 0 Percentage: 0
+Speed Category: SPEED_81100 Total: 0 Percentage: 0
+Speed Category: SPEED_101120 Total: 0 Percentage: 0
+Speed Category: SPEED_121140 Total: 0 Percentage: 0
+Speed Category: SPEED_141160 Total: 0 Percentage: 0
+Speed Category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 237, Avg Num of Ping Pong HO: 0.248428
+
+Total Virtual Cell: 6655 VC Size Ratio: 0.0697589
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 6655 Total Vehicle: 4481 Average Size: 1.48516
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+testHODecisionByScalarCount: 649 testHODecisionBySpeedCount: 2802 totalScalarParaConditionedPassed: 918 testMasterIDCount: 181 testTotalClosestTowerFound: 2455 Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3200 Avg Num of Intra-VC HO: 3.3543
+
+INTRA VC: Cumulative Time: 41.35, Avg INTRA VC HO Time: 0.0129219
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 3200 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 14 Avg Num of Inter-VC HO: 0.0146751
+
+INTER VC: Cumulative Time: 37.15, Avg INTER VC HO Time: 2.65357
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 14 Percentage: 1
+Speed Category: SPEED_2140 Total: 0 Percentage: 0
+Speed Category: SPEED_4160 Total: 0 Percentage: 0
+Speed Category: SPEED_6180 Total: 0 Percentage: 0
+Speed Category: SPEED_81100 Total: 0 Percentage: 0
+Speed Category: SPEED_101120 Total: 0 Percentage: 0
+Speed Category: SPEED_121140 Total: 0 Percentage: 0
+Speed Category: SPEED_141160 Total: 0 Percentage: 0
+Speed Category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 237, Avg Num of Ping Pong HO: 0.248428
+
+Total Virtual Cell: 6655 VC Size Ratio: 0.0697589
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 6655 Total Vehicle: 4481 Average Size: 1.48516
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+
+
+=========================================================
+       TGNN vs LSTM  PERFORMANCE COMPARISON
+=========================================================
+
+Metric                          TGNN            LSTM
+---------------------------------------------------------
+Packet Delivery Ratio (PDR)     0.9964          0.9967
+Packet Loss Rate    (PLR)       0.0036          0.0033
+Total Handovers                 4049              2437
+Ping-Pong Handovers             3219              1869
+Avg Throughput (Mbps)           131.6608        132.1404
+---------------------------------------------------------
+
+Notes:
+  PDR/PLR threshold: RSRP > -95.0000 dBm = delivered
+  Throughput: Shannon capacity proxy, 20 MHz, RSRP-based SINR
+  Ping-pong window: 5 handover events
+  Both models profiled simultaneously in a single simulation run
+
+testHODecisionByScalarCount: 0 testHODecisionBySpeedCount: 3426 totalScalarParaConditionedPassed: 0 testMasterIDCount: 0 testTotalClosestTowerFound: 0 Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3110 Avg Num of Intra-VC HO: 3.25996
+
+INTRA VC: Cumulative Time: 43.55, Avg INTRA VC HO Time: 0.0140032
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 3110 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 0 Avg Num of Inter-VC HO: 0
+
+INTER VC: Cumulative Time: 0, Avg INTER VC HO Time: -nan
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 0 Percentage: -nan
+Speed Category: SPEED_2140 Total: 0 Percentage: -nan
+Speed Category: SPEED_4160 Total: 0 Percentage: -nan
+Speed Category: SPEED_6180 Total: 0 Percentage: -nan
+Speed Category: SPEED_81100 Total: 0 Percentage: -nan
+Speed Category: SPEED_101120 Total: 0 Percentage: -nan
+Speed Category: SPEED_121140 Total: 0 Percentage: -nan
+Speed Category: SPEED_141160 Total: 0 Percentage: -nan
+Speed Category: SPEED_160PLUS Total: 0 Percentage: -nan
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 316, Avg Num of Ping Pong HO: 0.331237
+
+Total Virtual Cell: 4286 VC Size Ratio: 0.0449266
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 4286 Total Vehicle: 4481 Average Size: 0.956483
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+
+
+=========================================================
+       TGNN vs LSTM  PERFORMANCE COMPARISON
+=========================================================
+
+Metric                          TGNN            LSTM
+---------------------------------------------------------
+Packet Delivery Ratio (PDR)     1.0000          1.0000
+Packet Loss Rate    (PLR)       0.0000          0.0000
+Total Handovers                 0              2486
+Ping-Pong Handovers             0              1920
+Avg Throughput (Mbps)           644.4541        379.5641
+---------------------------------------------------------
+
+Notes:
+  PDR/PLR threshold: RSRP > -95.0000 dBm = delivered
+  Throughput: Shannon capacity proxy, 20 MHz, RSRP-based SINR
+  Ping-pong window: 5 handover events
+  Both models profiled simultaneously in a single simulation run
+
+testHODecisionByScalarCount: 0 testHODecisionBySpeedCount: 3426 totalScalarParaConditionedPassed: 0 testMasterIDCount: 0 testTotalClosestTowerFound: 0 Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3110 Avg Num of Intra-VC HO: 3.25996
+
+INTRA VC: Cumulative Time: 43.55, Avg INTRA VC HO Time: 0.0140032
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 3110 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 0 Avg Num of Inter-VC HO: 0
+
+INTER VC: Cumulative Time: 0, Avg INTER VC HO Time: -nan
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 0 Percentage: -nan
+Speed Category: SPEED_2140 Total: 0 Percentage: -nan
+Speed Category: SPEED_4160 Total: 0 Percentage: -nan
+Speed Category: SPEED_6180 Total: 0 Percentage: -nan
+Speed Category: SPEED_81100 Total: 0 Percentage: -nan
+Speed Category: SPEED_101120 Total: 0 Percentage: -nan
+Speed Category: SPEED_121140 Total: 0 Percentage: -nan
+Speed Category: SPEED_141160 Total: 0 Percentage: -nan
+Speed Category: SPEED_160PLUS Total: 0 Percentage: -nan
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 316, Avg Num of Ping Pong HO: 0.331237
+
+Total Virtual Cell: 4286 VC Size Ratio: 0.0449266
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 4286 Total Vehicle: 4481 Average Size: 0.956483
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+
+
+=========================================================
+       TGNN vs LSTM  PERFORMANCE COMPARISON
+=========================================================
+
+Metric                          TGNN            LSTM
+---------------------------------------------------------
+Packet Delivery Ratio (PDR)     1.0000          1.0000
+Packet Loss Rate    (PLR)       0.0000          0.0000
+Total Handovers                 0              2123
+Ping-Pong Handovers             0              1598
+Avg Throughput (Mbps)           644.4541        422.9892
+---------------------------------------------------------
+
+Notes:
+  PDR/PLR threshold: RSRP > -95.0000 dBm = delivered
+  Throughput: Shannon capacity proxy, 20 MHz, RSRP-based SINR
+  Ping-pong window: 5 handover events
+  Both models profiled simultaneously in a single simulation run
+
+testHODecisionByScalarCount: 0 testHODecisionBySpeedCount: 3287 totalScalarParaConditionedPassed: 0 testMasterIDCount: 0 testTotalClosestTowerFound: 0 Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3066 Avg Num of Intra-VC HO: 3.21384
+
+INTRA VC: Cumulative Time: 42.65, Avg INTRA VC HO Time: 0.0139106
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 3066 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 0 Avg Num of Inter-VC HO: 0
+
+INTER VC: Cumulative Time: 0, Avg INTER VC HO Time: -nan
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 0 Percentage: -nan
+Speed Category: SPEED_2140 Total: 0 Percentage: -nan
+Speed Category: SPEED_4160 Total: 0 Percentage: -nan
+Speed Category: SPEED_6180 Total: 0 Percentage: -nan
+Speed Category: SPEED_81100 Total: 0 Percentage: -nan
+Speed Category: SPEED_101120 Total: 0 Percentage: -nan
+Speed Category: SPEED_121140 Total: 0 Percentage: -nan
+Speed Category: SPEED_141160 Total: 0 Percentage: -nan
+Speed Category: SPEED_160PLUS Total: 0 Percentage: -nan
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 221, Avg Num of Ping Pong HO: 0.231656
+
+Total Virtual Cell: 4123 VC Size Ratio: 0.043218
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 4123 Total Vehicle: 4481 Average Size: 0.920107
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+
+
+=========================================================
+       TGNN vs LSTM  PERFORMANCE COMPARISON
+=========================================================
+
+Metric                          TGNN            LSTM
+---------------------------------------------------------
+Packet Delivery Ratio (PDR)     1.0000          1.0000
+Packet Loss Rate    (PLR)       0.0000          0.0000
+Total Handovers                 2391              2111
+Ping-Pong Handovers             2389              1566
+Avg Throughput (Mbps)           644.4541        419.7262
+---------------------------------------------------------
+
+Notes:
+  PDR/PLR threshold: RSRP > -95.0000 dBm = delivered
+  Throughput: Shannon capacity proxy, 20 MHz, RSRP-based SINR
+  Ping-pong window: 5 handover events
+  Both models profiled simultaneously in a single simulation run
+
+testHODecisionByScalarCount: 0 testHODecisionBySpeedCount: 50 totalScalarParaConditionedPassed: 0 testMasterIDCount: 0 testTotalClosestTowerFound: 0 Doing Ritika New TGNN Testing
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 50 Avg Num of Intra-VC HO: 0.0524109
+
+INTRA VC: Cumulative Time: 2.45, Avg INTRA VC HO Time: 0.049
+
+-------------------Percentages of INTRA-VC HO vs speed---------
+Speed category: SPEED_020 Total: 50 Percentage: 1
+Speed category: SPEED_2140 Total: 0 Percentage: 0
+Speed category: SPEED_4160 Total: 0 Percentage: 0
+Speed category: SPEED_6180 Total: 0 Percentage: 0
+Speed category: SPEED_81100 Total: 0 Percentage: 0
+Speed category: SPEED_101120 Total: 0 Percentage: 0
+Speed category: SPEED_121140 Total: 0 Percentage: 0
+Speed category: SPEED_141160 Total: 0 Percentage: 0
+Speed category: SPEED_160PLUS Total: 0 Percentage: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 0 Avg Num of Inter-VC HO: 0
+
+INTER VC: Cumulative Time: 0, Avg INTER VC HO Time: -nan
+
+-------------------Percentages of INTER-VC HO vs speed---------
+Speed Category: SPEED_020 Total: 0 Percentage: -nan
+Speed Category: SPEED_2140 Total: 0 Percentage: -nan
+Speed Category: SPEED_4160 Total: 0 Percentage: -nan
+Speed Category: SPEED_6180 Total: 0 Percentage: -nan
+Speed Category: SPEED_81100 Total: 0 Percentage: -nan
+Speed Category: SPEED_101120 Total: 0 Percentage: -nan
+Speed Category: SPEED_121140 Total: 0 Percentage: -nan
+Speed Category: SPEED_141160 Total: 0 Percentage: -nan
+Speed Category: SPEED_160PLUS Total: 0 Percentage: -nan
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed VC HO Total: 0 Avg Num of Failed HO: 0
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 0, Avg Num of Ping Pong HO: 0
+
+Total Virtual Cell: 4215 VC Size Ratio: 0.0441824
+
+----------------------------------------------Size of VC over speed-----------------------------------------
+
+Virtual Cell Size For Speed: SPEED_020 VC Size: 4215 Total Vehicle: 4481 Average Size: 0.940638
+
+Virtual Cell Size For Speed: SPEED_2140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_4160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_6180 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_81100 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_101120 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_121140 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_141160 VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+Virtual Cell Size For Speed: SPEED_160PLUS VC Size: 0 Total Vehicle: 0 Average Size: -nan
+
+
+
+=========================================================
+       TGNN vs LSTM  PERFORMANCE COMPARISON
+=========================================================
+
+Metric                          TGNN            LSTM
+---------------------------------------------------------
+Packet Delivery Ratio (PDR)     0.9873          0.9873
+Packet Loss Rate    (PLR)       0.0127          0.0127
+Total Handovers                 330              132
+Ping-Pong Handovers             330              81
+Avg Throughput (Mbps)           147.9934        147.9934
+---------------------------------------------------------
+
+Notes:
+  PDR/PLR threshold: RSRP > -95.0000 dBm = delivered
+  Throughput: Shannon capacity proxy, 20 MHz, RSRP-based SINR
+  Ping-pong window: 5 handover events
+  Both models profiled simultaneously in a single simulation run
+
