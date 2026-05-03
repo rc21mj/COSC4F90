@@ -1,11 +1,16 @@
-// NazaninHandoverDecision.cc
 //
-// Fixes applied:
-//   1. Removed duplicate runTGNN() and runTGNNdiff() — only runProperTGNN() remains.
-//   2. writeTGNNRuntimeWindow() now writes a selectedTower column (placeholder = -1)
-//      so graph_dataset.py does not crash when loading the runtime CSV.
-//   3. baseFilePath is still a string constant here but marked with a TODO so
-//      you can easily move it to an OMNeT++ .ini parameter.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
 #include <assert.h>
@@ -27,10 +32,10 @@ double minLoad = -10;
 double minTowerLoad, avgLoad, sumbsLoadCal1, towerCount;
 double towerLoad_cur_simtime = 1;
 
-// TODO: move baseFilePath to an OMNeT++ .ini parameter so the project is
-//       portable across machines.  For now keep as a single string constant.
-std::string baseFilePath = "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/layer/";
-std::string speedFile    = "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt";
+std::string baseFilePath =
+    "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/layer/";
+std::string speedFile =
+    "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt";
 
 LtePhyUe* lte = new LtePhyUe();
 
@@ -39,14 +44,10 @@ enum SpeedCategory {
     SPEED_101120, SPEED_121140, SPEED_141160, SPEED_160PLUS, SPEED_COUNT
 };
 
-UserControlInfo* lteInfo = new UserControlInfo();
-
-// ─────────────────────────────────────────────────────────────────────────── //
+UserControlInfo *lteInfo = new UserControlInfo();
 
 NazaninHandoverDecision::NazaninHandoverDecision() {}
 NazaninHandoverDecision::~NazaninHandoverDecision() {}
-
-// ─────────────────────────────────────────────────────────────────────────── //
 
 std::vector<int> NazaninHandoverDecision::GetClosestTowersId(
     double xCoordRef, double yCoordRef, int vehicleID, int curTower)
@@ -61,23 +62,20 @@ std::vector<int> NazaninHandoverDecision::GetClosestTowersId(
         towerPosition.y = tower.second.second;
         towerPosition.z = 300;
         double towerDistance = towerPosition.distance(VehiclePosCal);
-        if (towerDistance < 600) {
+        if (towerDistance < 600)
             closestTower.push_back(tower.first);
-        }
     }
     return closestTower;
 }
 
-// ─────────────────────────────────────────────────────────────────────────── //
-
-std::tuple<double, double, double, double>
-NazaninHandoverDecision::calculateMetrics(
+std::tuple<double, double, double, double> NazaninHandoverDecision::calculateMetrics(
     LteChannelModel* primaryChannelModel_, LteAirFrame* frame, UserControlInfo* lteInfo)
 {
     double rssi = 0;
     std::vector<double> rssiV = primaryChannelModel_->getSINR(frame, lteInfo);
     for (auto it = rssiV.begin(); it != rssiV.end(); ++it)
         rssi += *it;
+    std::cout << std::endl;
     rssi /= rssiV.size();
 
     double maxSINR = *max_element(rssiV.begin(), rssiV.end());
@@ -88,8 +86,6 @@ NazaninHandoverDecision::calculateMetrics(
     double rsrq = (10 * maxRSRP) / rssi;
     return std::make_tuple(rssi, maxSINR, maxRSRP, rsrq);
 }
-
-// ─────────────────────────────────────────────────────────────────────────── //
 
 double NazaninHandoverDecision::getParfromFile(std::string filepath)
 {
@@ -102,8 +98,7 @@ double NazaninHandoverDecision::getParfromFile(std::string filepath)
     return parDouble;
 }
 
-std::tuple<double, double>
-NazaninHandoverDecision::getParfromFileForSVR(std::string filepath)
+std::tuple<double, double> NazaninHandoverDecision::getParfromFileForSVR(std::string filepath)
 {
     std::ifstream file(filepath);
     std::string line;
@@ -113,22 +108,20 @@ NazaninHandoverDecision::getParfromFileForSVR(std::string filepath)
         std::istringstream iss(line);
         std::string token;
         while (std::getline(iss, token, ' ')) {
-            data[count++] = atof(token.c_str());
+            data[count] = atof(token.c_str());
+            count++;
         }
     }
     file.close();
     return std::make_tuple(data[0], data[1]);
 }
 
-// ─────────────────────────────────────────────────────────────────────────── //
-
-void NazaninHandoverDecision::calculateTowerLoad(
-    UserControlInfo* lteInfo, LteAirFrame* frame)
+void NazaninHandoverDecision::calculateTowerLoad(UserControlInfo* lteInfo, LteAirFrame* frame)
 {
     int index = lteInfo->getSourceId() - 1;
     bsLoad[index]++;
     bsLoadCal1Weighted = (bsLoad[index] + 10) /
-        (std::accumulate(bsLoad, bsLoad + NUM_TOWERS, 0) + 10);
+                         (std::accumulate(bsLoad, bsLoad + NUM_TOWERS, 0) + 10);
 
     if (simTime().dbl() != towerLoad_cur_simtime) {
         minTowerLoad = towerLoad(frame, lteInfo);
@@ -149,7 +142,7 @@ double NazaninHandoverDecision::towerLoad(LteAirFrame* frame, UserControlInfo* l
     int flag = 0;
     for (int i = 0; i < NUM_TOWERS; i++) {
         bsLoadCal1[i] = (bsLoad[i] + 10) /
-            (std::accumulate(bsLoad, bsLoad + NUM_TOWERS, 0) - bsLoad[i] + 10);
+                        (std::accumulate(bsLoad, bsLoad + NUM_TOWERS, 0) - bsLoad[i] + 10);
         if (bsLoadCal1[i] >= minLoad && flag != 1) {
             minLoad = bsLoadCal1[i];
             flag = 1;
@@ -160,8 +153,6 @@ double NazaninHandoverDecision::towerLoad(LteAirFrame* frame, UserControlInfo* l
     return minLoad;
 }
 
-// ─────────────────────────────────────────────────────────────────────────── //
-
 void NazaninHandoverDecision::saveParaToFile(std::string filepath, double para)
 {
     std::ofstream file(baseFilePath + filepath);
@@ -169,28 +160,20 @@ void NazaninHandoverDecision::saveParaToFile(std::string filepath, double para)
     file.close();
 }
 
-void NazaninHandoverDecision::saveStringParaToFile(
-    std::string filepath, std::string para)
+void NazaninHandoverDecision::saveStringParaToFile(std::string filepath, std::string para)
 {
     std::ofstream file(baseFilePath + filepath, std::ios_base::app);
     file << para << std::endl;
     file.close();
 }
 
-void NazaninHandoverDecision::saveArrayToFile(
-    const std::string& fileName, const std::vector<double>& array)
+void NazaninHandoverDecision::saveArrayToFile(const std::string& fileName,
+                                               const std::vector<double>& array)
 {
     std::ofstream file(baseFilePath + fileName);
     for (const auto& value : array)
         file << value << "\t";
 }
-
-// ─────────────────────────────────────────────────────────────────────────── //
-// Python subprocess launchers
-// runTGNN() and runTGNNdiff() have been removed — they were duplicates of
-// runProperTGNN() and caused ambiguity about which inference script was active.
-// Call runProperTGNN() exclusively from LtePhyUe.cc.
-// ─────────────────────────────────────────────────────────────────────────── //
 
 void NazaninHandoverDecision::runLSTM()
 {
@@ -198,46 +181,59 @@ void NazaninHandoverDecision::runLSTM()
     system(cmd.c_str());
 }
 
+// ── UPDATED: runs infer_improved_tgnn.py (was infer_proper_tgnn.py).
+//    Static guard removed so inference re-runs every time it is called
+//    (LtePhyUe.cc already throttles calls to every 15 sim ticks via lstmSimTime).
+//    Writes both:
+//      outputTGNN_proper.txt  — (towerId, score) pairs read by readProperTGNNOutput()
+//      outputTGNN.txt         — best-score scalar (legacy, kept for compatibility)
 void NazaninHandoverDecision::runProperTGNN()
 {
-    static bool properTGNNStarted = false;
-    if (properTGNNStarted)
-        return;
-    properTGNNStarted = true;
-
-    // FIX: pass runtime_tgnn_window.csv as CLI arg so the script loads live
-    //      vehicle data instead of the full training CSV.
-    std::string cmd = "python3 " + baseFilePath + "infer_proper_tgnn.py"
-                    + " " + baseFilePath + "runtime_tgnn_window.csv";
-    cmd += " > /tmp/properTGNN.log 2>&1 &";
+    // --live tells the script to read runtime_tgnn_window.csv (C++ format)
+    // rather than simulator_data.csv (training format)
+    std::string cmd = "python3 " + baseFilePath + "infer_improved_tgnn.py"
+                    + " --live"
+                    + " --ckpt "       + baseFilePath + "improved_tgnn_ckpt"
+                    + " --window "     + baseFilePath + "runtime_tgnn_window.csv"
+                    + " --out "        + baseFilePath + "outputTGNN_proper.txt"
+                    + " --scalar-out " + baseFilePath + "outputTGNN.txt"
+                    + " > /tmp/improvedTGNN.log 2>&1 &";  // async, non-blocking
 
     int ret = std::system(cmd.c_str());
-    EV_INFO << "[ProperTGNN] Started infer_proper_tgnn.py async, system() returned "
-            << ret << "\n";
+    EV_INFO << "[ImprovedTGNN] Launched infer_improved_tgnn.py (live mode) async, "
+            << "system() returned " << ret << "\n";
 }
 
-// ─────────────────────────────────────────────────────────────────────────── //
-
-std::vector<std::pair<int, double>>
-NazaninHandoverDecision::readProperTGNNOutput(const std::string& filepath)
+// ── readProperTGNNOutput: parses outputTGNN_proper.txt written by infer_improved_tgnn.py
+//    Format per line: "towerId,score\n"
+//    Called in LtePhyUe::handoverHandler() to select the best tower.
+std::vector<std::pair<int, double>> NazaninHandoverDecision::readProperTGNNOutput(
+    const std::string& filepath)
 {
     std::vector<std::pair<int, double>> results;
     std::ifstream in(filepath);
-    std::string line;
+    if (!in.is_open()) {
+        EV_WARN << "[ImprovedTGNN] Cannot open " << filepath
+                << " — inference may not have run yet.\n";
+        return results;
+    }
 
+    std::string line;
     while (std::getline(in, line)) {
         std::stringstream ss(line);
         std::string towerStr, scoreStr;
         if (std::getline(ss, towerStr, ',') && std::getline(ss, scoreStr)) {
-            int    towerId = std::stoi(towerStr);
-            double score   = std::stod(scoreStr);
-            results.push_back({towerId, score});
+            try {
+                int towerId    = std::stoi(towerStr);
+                double score   = std::stod(scoreStr);
+                results.push_back({towerId, score});
+            } catch (...) {
+                // skip malformed lines
+            }
         }
     }
     return results;
 }
-
-// ─────────────────────────────────────────────────────────────────────────── //
 
 void NazaninHandoverDecision::appendTGNNRow(const TGNNRow& row)
 {
@@ -247,53 +243,28 @@ void NazaninHandoverDecision::appendTGNNRow(const TGNNRow& row)
         hist.pop_front();
 }
 
-// ─────────────────────────────────────────────────────────────────────────── //
-// FIX: added selectedTower column to the CSV header and data rows.
-//      graph_dataset.py lists selectedTower in REQUIRED_COLUMNS; without it
-//      the script crashes immediately on load.  We write -1 as a placeholder
-//      (inference mode has no ground-truth label).
-// ─────────────────────────────────────────────────────────────────────────── //
-
-void NazaninHandoverDecision::writeTGNNRuntimeWindow(
-    int vehicleId, const std::string& filepath)
+void NazaninHandoverDecision::writeTGNNRuntimeWindow(int vehicleId, const std::string& filepath)
 {
     std::ofstream out(filepath);
-    out << "timestamp,vehicleId,masterId,candidateMasterId,"
-           "masterDistance,candidateDistance,"
-           "masterRSSI,candidateRSSI,masterSINR,candidateSINR,"
-           "masterRSRP,candidateRSRP,"
-           "masterSpeed,candidateSpeed,vehicleDirection,"
-           "vehiclePosition-x,vehiclePosition-y,"
-           "towerload,selectedTower\n";   // <-- selectedTower column added
+    out << "timestamp,vehicleId,masterId,candidateMasterId,masterDistance,candidateDistance,"
+           "masterRSSI,candidateRSSI,masterSINR,candidateSINR,masterRSRP,candidateRSRP,"
+           "masterSpeed,candidateSpeed,vehicleDirection,vehiclePosition-x,vehiclePosition-y,"
+           "towerload\n";
 
     auto it = tgnnHistory.find(vehicleId);
-    if (it == tgnnHistory.end())
-        return;
+    if (it == tgnnHistory.end()) return;
 
     for (const auto& r : it->second) {
-        out << r.timestamp        << ","
-            << r.vehicleId        << ","
-            << r.masterId         << ","
-            << r.candidateMasterId << ","
-            << r.masterDistance   << ","
-            << r.candidateDistance << ","
-            << r.masterRSSI       << ","
-            << r.candidateRSSI    << ","
-            << r.masterSINR       << ","
-            << r.candidateSINR    << ","
-            << r.masterRSRP       << ","
-            << r.candidateRSRP    << ","
-            << r.masterSpeed      << ","
-            << r.candidateSpeed   << ","
-            << r.vehicleDirection << ","
-            << r.vehiclePosX      << ","
-            << r.vehiclePosY      << ","
-            << r.towerload        << ","
-            << -1                 << "\n";   // placeholder for selectedTower
+        out << r.timestamp << "," << r.vehicleId << "," << r.masterId << ","
+            << r.candidateMasterId << "," << r.masterDistance << "," << r.candidateDistance << ","
+            << r.masterRSSI << "," << r.candidateRSSI << ","
+            << r.masterSINR << "," << r.candidateSINR << ","
+            << r.masterRSRP << "," << r.candidateRSRP << ","
+            << r.masterSpeed << "," << r.candidateSpeed << ","
+            << r.vehicleDirection << "," << r.vehiclePosX << "," << r.vehiclePosY << ","
+            << r.towerload << "\n";
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────── //
 
 void NazaninHandoverDecision::runSVR(unsigned short vehicleID, int simTime)
 {
@@ -302,45 +273,55 @@ void NazaninHandoverDecision::runSVR(unsigned short vehicleID, int simTime)
     system(cmd.c_str());
 }
 
-NazaninHandoverDecision::SpeedCategory
-NazaninHandoverDecision::getSpeedCategory(double vSpeed)
+NazaninHandoverDecision::SpeedCategory NazaninHandoverDecision::getSpeedCategory(double vSpeed)
 {
-    if      (vSpeed <=  20) return SPEED_020;
-    else if (vSpeed <=  40) return SPEED_2140;
-    else if (vSpeed <=  60) return SPEED_4160;
-    else if (vSpeed <=  80) return SPEED_6180;
-    else if (vSpeed <= 100) return SPEED_81100;
-    else if (vSpeed <= 120) return SPEED_101120;
-    else if (vSpeed <= 140) return SPEED_121140;
-    else if (vSpeed <= 160) return SPEED_141160;
-    else                    return SPEED_160PLUS;
+    if (vSpeed >= 0 && vSpeed <= 20)  return SPEED_020;
+    else if (vSpeed <= 40)            return SPEED_2140;
+    else if (vSpeed <= 60)            return SPEED_4160;
+    else if (vSpeed <= 80)            return SPEED_6180;
+    else if (vSpeed <= 100)           return SPEED_81100;
+    else if (vSpeed <= 120)           return SPEED_101120;
+    else if (vSpeed <= 140)           return SPEED_121140;
+    else if (vSpeed <= 160)           return SPEED_141160;
+    else                              return SPEED_160PLUS;
 }
 
-void NazaninHandoverDecision::calculateReward(
-    double& rewd, double rssi, double avgLoad,
-    double distanceDouble, std::vector<MacNodeId>& last_srv_MasterIdV)
+void NazaninHandoverDecision::calculateReward(double& rewd, double rssi, double avgLoad,
+                                               double distanceDouble,
+                                               std::vector<MacNodeId>& last_srv_MasterIdV)
 {
     rewd = (rssi + avgLoad + (5000 - distanceDouble)) / 3;
 }
 
-void NazaninHandoverDecision::calculateTimeInterval(
-    double vIndiSpeed, double& srl_alpha, double& srl_gamma)
+void NazaninHandoverDecision::calculateTimeInterval(double vIndiSpeed,
+                                                     double& srl_alpha, double& srl_gamma)
 {
     if ((int)simTime().dbl() % 5 == 0) {
-        if      (vIndiSpeed >   0 && vIndiSpeed <=  60) { srl_alpha = 0.8; srl_gamma = 0.8; }
-        else if (vIndiSpeed >  61 && vIndiSpeed <= 120) { srl_alpha = 0.5; srl_gamma = 0.5; }
-        else                                             { srl_alpha = 0.3; srl_gamma = 0.1; }
+        if (vIndiSpeed > 0 && vIndiSpeed <= 60)        { srl_alpha = 0.8; srl_gamma = 0.8; }
+        else if (vIndiSpeed > 61 && vIndiSpeed <= 120) { srl_alpha = 0.5; srl_gamma = 0.5; }
+        else                                            { srl_alpha = 0.3; srl_gamma = 0.1; }
     }
 }
 
 void NazaninHandoverDecision::updateQValue(
     double& max_Qvalue, double& upt_Qvalue, std::vector<double>& upt_QvalueV,
-    double ho_Qvalue, double srl_alpha, double rewd,
-    double srl_gamma, double srv_Qvalue, double mbr_Qvalue)
+    double ho_Qvalue, double srl_alpha, double rewd, double srl_gamma,
+    double srv_Qvalue, double mbr_Qvalue)
 {
     upt_Qvalue = ho_Qvalue + srl_alpha * (rewd + ((srl_gamma * srv_Qvalue) - mbr_Qvalue));
     upt_QvalueV.push_back(upt_Qvalue);
     max_Qvalue = *max_element(upt_QvalueV.begin(), upt_QvalueV.end());
+}
+
+void NazaninHandoverDecision::updateCandidate(double scalPara, double predScaValLSTM,
+                                               MacNodeId& sel_srv_Qvalue_id,
+                                               MacNodeId& mbr_Qvalue_id,
+                                               UserControlInfo* lteInfo)
+{
+    if (scalPara > predScaValLSTM)
+        sel_srv_Qvalue_id = lteInfo->getSourceId();
+    else
+        mbr_Qvalue_id = lteInfo->getSourceId();
 }
 
 void NazaninHandoverDecision::performHysteresisUpdate(

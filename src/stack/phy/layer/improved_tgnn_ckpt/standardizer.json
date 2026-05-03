@@ -1,0 +1,32 @@
+{
+  "mean": {
+    "masterDistance": 1735.1837813790912,
+    "candidateDistance": 1628.3103241182077,
+    "masterRSSI": 11.903442151255165,
+    "candidateRSSI": 13.067418013600255,
+    "masterSINR": 20.781302180139818,
+    "candidateSINR": 19.51459414013346,
+    "masterRSRP": -77.86637305370192,
+    "candidateRSRP": -76.70889094375596,
+    "masterSpeed": 0.0,
+    "candidateSpeed": 0.0,
+    "vehiclePosition-x": 1223.5883180807118,
+    "vehiclePosition-y": 1435.3579933269782,
+    "towerload": 1435.3579933269782
+  },
+  "std": {
+    "masterDistance": 518.9355363020521,
+    "candidateDistance": 526.1539499383089,
+    "masterRSSI": 8.460873937675592,
+    "candidateRSSI": 9.264152864202403,
+    "masterSINR": 9.309024061737894,
+    "candidateSINR": 8.475680536010175,
+    "masterRSRP": 8.62342790751901,
+    "candidateRSRP": 9.326694200164019,
+    "masterSpeed": 1.0,
+    "candidateSpeed": 1.0,
+    "vehiclePosition-x": 570.8129233479934,
+    "vehiclePosition-y": 350.9613715199825,
+    "towerload": 350.9613715199825
+  }
+}

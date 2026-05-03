@@ -8,12 +8,6 @@
 // The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
-// Ritika modifications:
-//   - Removed HoMng->runTGNN() and HoMng->runTGNNdiff() calls (methods deleted from NazaninHandoverDecision)
-//   - Fixed writeProperTGNNWindowToFile() to include selectedTower column (placeholder -1)
-//     so graph_dataset.py does not crash when loading the runtime CSV
-//   - runProperTGNN() now passes the runtime window CSV path as a CLI argument
-//     so infer_proper_tgnn.py loads live data instead of the training CSV
 
 #include <assert.h>
 #include "stack/phy/layer/LtePhyUe.h"
@@ -32,11 +26,9 @@
 #include <fstream>
 #include <deque>
 #include <sstream>
-#include <cmath>
-#include <iomanip>
 
-std::deque<std::string> tgnnWindow_;
-static const int TGNN_STEPS = 5;
+// ── REMOVED: old tgnnWindow_ / TGNN_STEPS used by the defunct scalar TGNN.
+//    The improved TGNN uses properTGNNWindow_ (defined in LtePhyUe.h) instead.
 
 int counter = 0;
 NazaninHandoverDecision* HoMng = new NazaninHandoverDecision();
@@ -79,43 +71,11 @@ int totalVehicleNoCreatedVC = 0;
 double vehicleCountTotal = 0;
 double countTotalHO, insideVCHOTotal, outsideVCHOTotal, failureHOTotal, pingPongHOTotal;
 double comHOTime = 0, insideVCHOTime = 0, outsideVCHOTime = 0, failureHOTime = 0;
-
-// ── Per-model performance counters ──────────────────────────────────────── //
-// RSRP threshold below which a packet is counted as lost (-95 dBm)
-static const double RSRP_LOSS_THRESHOLD_DBM = -95.0;
-// Ping-pong detection window in timesteps
-static const int PP_WINDOW = 5;
-
-// TGNN counters
-double tgnn_hoTotal = 0, tgnn_pingPongTotal = 0, tgnn_failedHOTotal = 0;
-double tgnn_rsrpSum = 0;
-long   tgnn_rsrpCount = 0;
-double tgnn_packetDelivered = 0, tgnn_packetTotal = 0;
-std::deque<MacNodeId> tgnn_towerHistory;
-std::deque<double>    tgnn_hoTimestamps;
-
-// TGNN dwell timer: prevent another HO within TGNN_MIN_DWELL_TIME seconds
-// of the last one. Eliminates the ping-pong that results from the VC
-// fallback path firing every tick immediately after a TGNN handover.
-double tgnn_lastHoSimTime = -999.0;
-static const double TGNN_MIN_DWELL_TIME = 2.0;   // seconds — tune as needed
-
-// LSTM counters
-double lstm_hoTotal = 0, lstm_pingPongTotal = 0, lstm_failedHOTotal = 0;
-double lstm_rsrpSum = 0;
-long   lstm_rsrpCount = 0;
-double lstm_packetDelivered = 0, lstm_packetTotal = 0;
-std::deque<MacNodeId> lstm_towerHistory;
-std::deque<double>    lstm_hoTimestamps;
 double vSpeed;
 double updt_simtime = 1, finishSimTime = 1, lstmSimTime = 1, lstChkVehicleId = 1;
 bool isPerformedAnalysis = false;
 std::vector<double> inputLSTMTestDataArray;
 std::vector<double> inputLSTMDataArray;
-std::vector<double> inputTGNNTestDataArray;
-std::vector<double> inputTGNNDataArray;
-
-std::unordered_set<int, int> countMap;
 
 const int NUM_TOWERS = 10;
 double tLoad[NUM_TOWERS] = {0};
@@ -166,7 +126,6 @@ void LtePhyUe::initialize(int stage)
         currentMasterRsrp_ = 0;
         candidateMasterDist_ = 0;
         candidateMasterSpeed_ = 0;
-
         candidateMasterSinr_ = 0;
         candidateMasterRsrp_ = 0;
 
@@ -224,17 +183,20 @@ void LtePhyUe::initialize(int stage)
 
         if (isNr_)
         {
-            mac_ = check_and_cast<LteMacUe*>(getParentModule()->getSubmodule("nrMac"));
+            mac_ = check_and_cast<LteMacUe *>(
+                getParentModule()->getSubmodule("nrMac"));
             rlcUm_ = check_and_cast<LteRlcUm*>(
                 getParentModule()->getSubmodule("nrRlc")->getSubmodule("um"));
         }
         else
         {
-            mac_ = check_and_cast<LteMacUe*>(getParentModule()->getSubmodule("mac"));
+            mac_ = check_and_cast<LteMacUe *>(
+                getParentModule()->getSubmodule("mac"));
             rlcUm_ = check_and_cast<LteRlcUm*>(
                 getParentModule()->getSubmodule("rlc")->getSubmodule("um"));
         }
-        pdcp_ = check_and_cast<LtePdcpRrcBase*>(getParentModule()->getSubmodule("pdcpRrc"));
+        pdcp_ = check_and_cast<LtePdcpRrcBase*>(
+            getParentModule()->getSubmodule("pdcpRrc"));
 
         if (isNr_)
             nodeId_ = getAncestorPar("nrMacNodeId");
@@ -251,8 +213,8 @@ void LtePhyUe::initialize(int stage)
 
         if (dynamicCellAssociation_)
         {
-            LteAirFrame* frame = new LteAirFrame("cellSelectionFrame");
-            UserControlInfo* cInfo = new UserControlInfo();
+            LteAirFrame *frame = new LteAirFrame("cellSelectionFrame");
+            UserControlInfo *cInfo = new UserControlInfo();
 
             std::vector<EnbInfo*>* enbList = binder_->getEnbList();
             std::vector<EnbInfo*>::iterator it = enbList->begin();
@@ -273,11 +235,11 @@ void LtePhyUe::initialize(int stage)
                 cInfo->setFrameType(BROADCASTPKT);
                 cInfo->setDirection(DL);
 
-                std::vector<double>::iterator it;
+                std::vector<double>::iterator it2;
                 double rssi = 0;
                 std::vector<double> rssiV = primaryChannelModel_->getRSRP(frame, cInfo);
-                for (it = rssiV.begin(); it != rssiV.end(); ++it)
-                    rssi += *it;
+                for (it2 = rssiV.begin(); it2 != rssiV.end(); ++it2)
+                    rssi += *it2;
                 rssi /= rssiV.size();
 
                 if (rssi > candidateMasterRssi_)
@@ -324,7 +286,7 @@ void LtePhyUe::initialize(int stage)
     }
 }
 
-void LtePhyUe::handleSelfMessage(cMessage* msg)
+void LtePhyUe::handleSelfMessage(cMessage *msg)
 {
     if (msg->isName("handoverStarter"))
         triggerHandover();
@@ -336,49 +298,33 @@ void LtePhyUe::handleSelfMessage(cMessage* msg)
     }
 }
 
-void LtePhyUe::addRowToCSV(std::string& filename, const CSVRow& newRow)
-{
+void LtePhyUe::addRowToCSV(std::string& filename, const CSVRow& newRow) {
     std::fstream file(filename, std::ios::out | std::ios::app);
-    if (!file.is_open())
-    {
+    if (!file.is_open()) {
         std::cerr << "Error:addRowToCSV Unable to open the file for writing." << std::endl;
         return;
     }
     file << newRow.timestamp << ',' << newRow.vehicleId << ',' << newRow.masterId_ << ','
          << newRow.candidateMasterId_ << ',' << newRow.signalQuality
-         << ',' << newRow.masterDistance << ',' << newRow.candidateDistance << ','
-         << newRow.masterSpeed << ',' << newRow.candidateSpeed << ',' << newRow.vehicleDirection
-         << ',' << newRow.vehiclePositionx << ',' << newRow.vehiclePositiony << ','
-         << newRow.vehiclePositionz << ',' << newRow.candidateTowerPositionx << ','
-         << newRow.candidateTowerPositiony << ',' << newRow.candidateTowerPositionz << ','
-         << newRow.towerLoad << ',' << newRow.masterRSSI << ',' << newRow.candidateRSSI << ','
-         << newRow.masterSINR << ',' << newRow.candidateSINR << ',' << newRow.masterRSRP << ','
-         << newRow.candidateRSRP << ',' << newRow.predictedTGNN << ',' << newRow.predictedLSTM
+         << ',' << newRow.masterDistance << ',' << newRow.candidateDistance
+         << ',' << newRow.masterSpeed << ',' << newRow.candidateSpeed
+         << ',' << newRow.vehicleDirection
+         << ',' << newRow.vehiclePositionx << ',' << newRow.vehiclePositiony << ',' << newRow.vehiclePositionz
+         << ',' << newRow.candidateTowerPositionx << ',' << newRow.candidateTowerPositiony << ',' << newRow.candidateTowerPositionz
+         << ',' << newRow.towerLoad
+         << ',' << newRow.masterRSSI << ',' << newRow.candidateRSSI
+         << ',' << newRow.masterSINR << ',' << newRow.candidateSINR
+         << ',' << newRow.masterRSRP << ',' << newRow.candidateRSRP
+         << ',' << newRow.predictedTGNN << ',' << newRow.predictedLSTM
          << ',' << newRow.selectedTower << '\n';
     file.close();
 }
 
-void LtePhyUe::updateQvaluesFromTGNN()
-{
-    std::ifstream infile("/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/layer/outputTGNNdiff.txt");
-    if (!infile.is_open())
-    {
-        EV << "Error: Cannot open TGNN output file!\n";
-        return;
-    }
-    double tgnn_score = 0.0;
-    infile >> tgnn_score;
-    infile.close();
+// NOTE: updateQvaluesFromTGNN() (old TGNN-diff path) is intentionally removed.
+// The improved TGNN writes outputTGNN_proper.txt which is consumed directly
+// in handoverHandler() via readProperTGNNOutput().
 
-    double oldQ = ho_Qvalue;
-    ho_Qvalue = tgnn_score;
-
-    std::cout << "[TGNNdiff APPLY] simTime=" << simTime()
-              << " ho_Qvalue was=" << oldQ << " now=" << ho_Qvalue << "\n" << std::endl;
-}
-
-double LtePhyUe::calculateEachTowerLoad(int vehiclesConnectedToTower, int totalVehicles)
-{
+double LtePhyUe::calculateEachTowerLoad(int vehiclesConnectedToTower, int totalVehicles) {
     if (totalVehicles > 0)
         return static_cast<double>(vehiclesConnectedToTower) / totalVehicles * 100.0;
     std::cerr << "Error: Total number of vehicles is zero." << std::endl;
@@ -392,28 +338,26 @@ void LtePhyUe::appendProperTGNNRow(const ProperTGNNRow& row)
         properTGNNWindow_.pop_front();
 }
 
-// ─────────────────────────────────────────────────────────────────────────── //
-// FIX: added selectedTower column to the CSV header and rows.
-//      graph_dataset.py requires selectedTower in REQUIRED_COLUMNS; without it
-//      infer_proper_tgnn.py crashes immediately on load.
-//      We write -1 as a placeholder (no ground-truth label at inference time).
-// ─────────────────────────────────────────────────────────────────────────── //
 bool LtePhyUe::writeProperTGNNWindowToFile(const std::string& filepath)
 {
-    if ((int)properTGNNWindow_.size() < PROPER_TGNN_STEPS)
-    {
-        EV_WARN << "[ProperTGNN] Not enough rows to write runtime window. size="
-                << properTGNNWindow_.size() << " required=" << PROPER_TGNN_STEPS << endl;
+    // Count rows where master != candidate (real handover candidates)
+    int validRows = 0;
+    for (const auto& r : properTGNNWindow_)
+        if (r.masterId != r.candidateMasterId) validRows++;
+
+    if (validRows < PROPER_TGNN_STEPS) {
+        EV_WARN << "[ImprovedTGNN] Not enough valid (master!=candidate) rows. "
+                << "valid=" << validRows << " required=" << PROPER_TGNN_STEPS << endl;
         return false;
     }
 
     std::ofstream out(filepath.c_str());
-    if (!out.is_open())
-    {
-        EV_ERROR << "[ProperTGNN] Failed to open runtime window file: " << filepath << endl;
+    if (!out.is_open()) {
+        EV_ERROR << "[ImprovedTGNN] Failed to open runtime window file: " << filepath << endl;
         return false;
     }
 
+    // Column names must match what infer_improved_tgnn.py expects (same as simulator_data.csv)
     out << "timestamp,vehicleId,masterId,candidateMasterId,"
            "masterDistance,candidateDistance,"
            "masterSpeed,candidateSpeed,"
@@ -423,125 +367,56 @@ bool LtePhyUe::writeProperTGNNWindowToFile(const std::string& filepath)
            "masterRSSI,candidateRSSI,"
            "masterSINR,candidateSINR,"
            "masterRSRP,candidateRSRP,"
-           "selectedTower\n";   // <-- added selectedTower column
+           "selectedTower\n";
 
-    for (const auto& r : properTGNNWindow_)
-    {
-        out << r.timestamp        << ","
-            << r.vehicleId        << ","
-            << r.masterId         << ","
-            << r.candidateMasterId << ","
-            << r.masterDistance   << ","
-            << r.candidateDistance << ","
-            << r.masterSpeed      << ","
-            << r.candidateSpeed   << ","
+    for (const auto& r : properTGNNWindow_) {
+        // Skip same-tower rows — they carry no handover signal
+        if (r.masterId == r.candidateMasterId) continue;
+
+        out << r.timestamp << "," << r.vehicleId << ","
+            << r.masterId  << "," << r.candidateMasterId << ","
+            << r.masterDistance << "," << r.candidateDistance << ","
+            << r.masterSpeed    << "," << r.candidateSpeed    << ","
             << r.vehicleDirection << ","
-            << r.vehiclePosX      << ","
-            << r.vehiclePosY      << ","
-            << r.towerload        << ","
-            << r.masterRSSI       << ","
-            << r.candidateRSSI    << ","
-            << r.masterSINR       << ","
-            << r.candidateSINR    << ","
-            << r.masterRSRP       << ","
-            << r.candidateRSRP    << ","
-            << -1                 << "\n";   // placeholder for selectedTower
+            << r.vehiclePosX << "," << r.vehiclePosY << ","
+            << r.towerload << ","
+            << r.masterRSSI << "," << r.candidateRSSI << ","
+            << r.masterSINR << "," << r.candidateSINR << ","
+            << r.masterRSRP << "," << r.candidateRSRP << ","
+            << -1 << "\n";  // selectedTower=-1 at runtime (unknown, handled by infer script)
     }
-
     out.close();
-    EV_INFO << "[ProperTGNN] Wrote runtime window with "
-            << properTGNNWindow_.size() << " rows to " << filepath << endl;
+
+    EV_INFO << "[ImprovedTGNN] Wrote runtime window (" << validRows
+            << " valid rows) to " << filepath << endl;
     return true;
 }
 
-// ── Per-model metric update helper ──────────────────────────────────────── //
-// Called every handoverHandler() tick with the tower and RSRP each model
-// independently chose, so both models are profiled in a single simulation run.
-static void updateModelMetrics(
-    MacNodeId decidedTower,
-    MacNodeId currentMaster,
-    double    selectedRSRP,
-    double    simTimeDbl,
-    double&              hoTotal,
-    double&              pingPongTotal,
-    double&              rsrpSum,
-    long&                rsrpCount,
-    double&              packetDelivered,
-    double&              packetTotal,
-    std::deque<MacNodeId>& towerHistory,
-    std::deque<double>&    hoTimestamps
-)
-{
-    // Packet delivery / packet loss
-    packetTotal += 1.0;
-    if (selectedRSRP > RSRP_LOSS_THRESHOLD_DBM)
-        packetDelivered += 1.0;
-
-    // Throughput proxy: accumulate RSRP for Shannon-capacity average later
-    rsrpSum   += selectedRSRP;
-    rsrpCount += 1;
-
-    // Handover count: a HO occurs when the decided tower differs from master
-    bool isHO = (decidedTower != 0 && decidedTower != currentMaster);
-    if (isHO)
-    {
-        hoTotal += 1.0;
-        hoTimestamps.push_back(simTimeDbl);
-        if ((int)hoTimestamps.size() > PP_WINDOW + 1)
-            hoTimestamps.pop_front();
-    }
-
-    // Ping-pong detection: HO to tower B then back to A within PP_WINDOW hops
-    MacNodeId effectiveTower = (decidedTower != 0) ? decidedTower : currentMaster;
-    towerHistory.push_back(effectiveTower);
-    if ((int)towerHistory.size() > PP_WINDOW + 2)
-        towerHistory.pop_front();
-
-    if (isHO && (int)towerHistory.size() >= 3)
-    {
-        int sz = (int)towerHistory.size();
-        MacNodeId newTower = towerHistory[sz - 1];
-        for (int k = sz - 3; k >= 0 && k >= sz - 1 - PP_WINDOW; --k)
-        {
-            if (towerHistory[k] == newTower)
-            {
-                pingPongTotal += 1.0;
-                break;
-            }
-        }
-    }
-}
-
 ////////////////////////////////////////////////////////
+// only called in NRPhyUe::handleAirFrame
 void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
 {
     counter++;
-    if (counter == 1)
-    {
+    if (counter == 1) {
+        // Clear CSV from previous run and write header
         std::ofstream file(csvFilePath, std::ios::out | std::ios::trunc);
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Error: Unable to open the file for clearing." << std::endl;
             return;
         }
         file.close();
 
         std::fstream file1(csvFilePath, std::ios::out | std::ios::app);
-        if (!file1.is_open())
-        {
+        if (!file1.is_open()) {
             std::cerr << "Error:handoverHandler LtePhyUe Unable to open the file for writing." << std::endl;
             return;
         }
-        file1 << "timestamp" << ',' << "vehicleId" << ',' << "masterId" << ',' << "candidateMasterId"
-              << ',' << "signalQuality" << ',' << "masterDistance" << ',' << "candidateDistance"
-              << ',' << "masterSpeed" << ',' << "candidateSpeed" << ',' << "vehicleDirection"
-              << ',' << "vehiclePosition- x" << ',' << "vehiclePosition- y" << ',' << "vehiclePosition- z"
-              << ',' << "candidateTowerPosition- x" << ',' << "candidateTowerPosition- y"
-              << ',' << "candidateTowerPosition- z" << ',' << "towerload"
-              << ',' << "masterRSSI" << ',' << "candidateRSSI"
-              << ',' << "masterSINR" << ',' << "candidateSINR"
-              << ',' << "masterRSRP" << ',' << "candidateRSRP"
-              << ',' << "predictedTGNN" << ',' << "predictedLSTM" << ',' << "selectedTower" << '\n';
+        file1 << "timestamp,vehicleId,masterId,candidateMasterId,signalQuality"
+              << ",masterDistance,candidateDistance,masterSpeed,candidateSpeed"
+              << ",vehicleDirection,vehiclePosition- x,vehiclePosition- y,vehiclePosition- z"
+              << ",candidateTowerPosition- x,candidateTowerPosition- y,candidateTowerPosition- z"
+              << ",towerload,masterRSSI,candidateRSSI,masterSINR,candidateSINR"
+              << ",masterRSRP,candidateRSRP,predictedTGNN,predictedLSTM,selectedTower\n";
         file1.close();
     }
 
@@ -558,11 +433,12 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
 
     frame->setControlInfo(lteInfo);
 
+    // ── Compute RF metrics
     auto result = HoMng->calculateMetrics(primaryChannelModel_, frame, lteInfo);
-    double rssi    = std::get<0>(result);
+    double rssi   = std::get<0>(result);
     double maxSINR = std::get<1>(result);
     double maxRSRP = std::get<2>(result);
-    double rsrq    = std::get<3>(result);
+    double rsrq   = std::get<3>(result);
 
     double distanceDouble = HoMng->getParfromFile(baseFilePath + "distanceFile.txt");
 
@@ -573,10 +449,10 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
 
     Coord towerPosition = lteInfo->getCoord();
 
-    double speedDouble = HoMng->getParfromFile("/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt");
-    double vSpeed = speedDouble * 3.6;
-    vIndiSpeed = vSpeed;
-
+    double speedDouble = HoMng->getParfromFile(
+        "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt");
+    double vSpeedKmh = speedDouble * 3.6;
+    vIndiSpeed = vSpeedKmh;
     speedV.push_back(speedDouble);
 
     HoMng->calculateTowerLoad(lteInfo, frame);
@@ -589,67 +465,52 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
     vehicleCountTotal = HoMng->getParfromFile(baseFilePath + "nodeCount.txt");
 
     scalPara = rssi;
-    inputTGNNDataArray.push_back(scalPara);
     inputLSTMDataArray.push_back(scalPara);
 
-    // tgnnWindow_ (legacy diff stream — kept for backward compat)
-    {
-        std::stringstream ss;
-        ss << simTime().dbl() << " " << getMacNodeId() << " "
-           << rssi << " " << maxSINR << " " << speedDouble << " " << distanceDouble;
-        tgnnWindow_.push_back(ss.str());
-        if (tgnnWindow_.size() > TGNN_STEPS)
-            tgnnWindow_.pop_front();
-    }
-
-    // Build and buffer the ProperTGNN row
+    // ── Build properTGNN runtime window row
     {
         ProperTGNNRow properRow;
-        properRow.timestamp         = simTime().dbl();
-        properRow.vehicleId         = getMacNodeId();
-        properRow.masterId          = masterId_;
+        properRow.timestamp        = simTime().dbl();
+        properRow.vehicleId        = getMacNodeId();
+        properRow.masterId         = masterId_;
         properRow.candidateMasterId = candidateMasterId_;
-        properRow.masterDistance    = currentMasterDist_;
+        properRow.masterDistance   = currentMasterDist_;
         properRow.candidateDistance = distanceDouble;
-        properRow.masterSpeed       = currentMasterSpeed_;
-        properRow.candidateSpeed    = speedDouble;
-        properRow.vehicleDirection  = dirMacNodeId;
-        properRow.vehiclePosX       = vPositionx;
-        properRow.vehiclePosY       = vPositiony;
-        properRow.towerload         = towerload;
-        properRow.masterRSSI        = currentMasterRssi_;
-        properRow.candidateRSSI     = rssi;
-        properRow.masterSINR        = currentMasterSinr_;
-        properRow.candidateSINR     = maxSINR;
-        properRow.masterRSRP        = currentMasterRsrp_;
-        properRow.candidateRSRP     = maxRSRP;
-
+        properRow.masterSpeed      = currentMasterSpeed_;
+        properRow.candidateSpeed   = speedDouble;
+        properRow.vehicleDirection = dirMacNodeId;
+        properRow.vehiclePosX      = vPositionx;
+        properRow.vehiclePosY      = vPositiony;
+        properRow.towerload        = towerload;
+        properRow.masterRSSI       = currentMasterRssi_;
+        properRow.candidateRSSI    = rssi;
+        properRow.masterSINR       = currentMasterSinr_;
+        properRow.candidateSINR    = maxSINR;
+        properRow.masterRSRP       = currentMasterRsrp_;
+        properRow.candidateRSRP    = maxRSRP;
         appendProperTGNNRow(properRow);
 
-        if ((int)properTGNNWindow_.size() == PROPER_TGNN_STEPS)
-        {
+        if ((int)properTGNNWindow_.size() == PROPER_TGNN_STEPS) {
             std::string properInputFile = baseFilePath + "runtime_tgnn_window.csv";
             writeProperTGNNWindowToFile(properInputFile);
         }
     }
 
+    // ── Save LSTM test data arrays every 13/14 ticks
     if (((int)simTime().dbl() % 13 == 0) || ((int)simTime().dbl() % 14 == 0))
     {
         inputLSTMTestDataArray.push_back(scalPara);
-        inputTGNNTestDataArray.push_back(scalPara);
         HoMng->saveArrayToFile("inputLSTMTestData.txt", inputLSTMTestDataArray);
         HoMng->saveArrayToFile("inputLSTM.txt", inputLSTMDataArray);
-        HoMng->saveArrayToFile("inputTGNNTestData.txt", inputTGNNTestDataArray);
-        HoMng->saveArrayToFile("inputTGNN.txt", inputTGNNDataArray);
     }
 
-    // ── ML model invocations ────────────────────────────────────────────── //
+    // ── Every 15 ticks: run LSTM + improved TGNN inference
     if (((int)simTime().dbl() % 15 == 0) && (simTime().dbl() != lstmSimTime))
     {
         HoMng->runLSTM();
-        // FIX: runTGNN() and runTGNNdiff() removed — those methods no longer exist.
-        //      runProperTGNN() is the single TGNN entry point.
-        HoMng->runProperTGNN();
+        // REMOVED: HoMng->runTGNN()     — old scalar TGNN, replaced by improved
+        // REMOVED: HoMng->runTGNNdiff() — old diff TGNN, replaced by improved
+        HoMng->runProperTGNN();   // ← calls infer_improved_tgnn.py
         lstmSimTime = simTime().dbl();
     }
 
@@ -658,10 +519,11 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
     {
         HoMng->runSVR(nodeId_, after_5SimTime);
         lstChkVehicleId = nodeId_;
-        predVehicleCoordSVR  = HoMng->getParfromFileForSVR(baseFilePath + "outputSVR.txt");
-        predXCoordVehicle    = std::get<0>(predVehicleCoordSVR);
-        predYCoordVehicle    = std::get<1>(predVehicleCoordSVR);
-        closestTowerLst      = HoMng->GetClosestTowersId(predXCoordVehicle, predYCoordVehicle, nodeId_, lteInfo->getSourceId());
+        predVehicleCoordSVR = HoMng->getParfromFileForSVR(baseFilePath + "outputSVR.txt");
+        predXCoordVehicle = std::get<0>(predVehicleCoordSVR);
+        predYCoordVehicle = std::get<1>(predVehicleCoordSVR);
+        closestTowerLst = HoMng->GetClosestTowersId(predXCoordVehicle, predYCoordVehicle,
+                                                     nodeId_, lteInfo->getSourceId());
     }
 
     if ((int)simTime().dbl() % 16 == 0)
@@ -670,119 +532,64 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
         HoMng->saveParaToFile("inputLSTMTestData.txt", 0);
         inputLSTMTestDataArray.clear();
         inputLSTMDataArray.clear();
-        HoMng->saveParaToFile("inputTGNN.txt", 0);
-        HoMng->saveParaToFile("inputTGNNTestData.txt", 0);
-        inputTGNNTestDataArray.clear();
-        inputTGNNDataArray.clear();
     }
 
-    // ── LSTM output (scalar signal prediction, same scale as RSSI) ──────── //
+    // ── Read model outputs
     predScaValLSTM = HoMng->getParfromFile(baseFilePath + "outputLSTM.txt");
 
-    // ── TGNN output (tower-selection scores from outputTGNN_proper.txt) ── //
-    // The proper TGNN writes "towerId,score" pairs — one per candidate tower.
-    // We find the best tower by score, then use its *actual measured RSRP*
-    // for the hysteresis comparison.  This keeps the decision on the same
-    // scale as the LSTM path and avoids comparing a 0-1 probability against
-    // a dB-scale RSSI value.
-    //
-    // tgnn_bestTowerId  = tower the TGNN recommends switching to (0 = no rec)
-    // tgnn_bestRSRP     = measured RSRP of that tower (for threshold comparison)
-    // tgnn_confidence   = score margin between best and current master tower
-    //                     (must exceed TGNN_CONFIDENCE_MARGIN to hand over)
-    static const double TGNN_CONFIDENCE_MARGIN = 0.15;  // tune as needed
+    // ── Read improved TGNN output: list of (towerId, score) pairs
+    //    Written by infer_improved_tgnn.py as outputTGNN_proper.txt
+    auto tgnnResults = HoMng->readProperTGNNOutput(baseFilePath + "outputTGNN_proper.txt");
 
-    MacNodeId tgnn_bestTowerId = 0;
-    double    tgnn_bestScore   = -1.0;
-    double    tgnn_masterScore = -1.0;
-    double    tgnn_bestRSRP    = currentMasterRsrp_;  // default: stay on master
-
-    {
-        auto tgnnResults = HoMng->readProperTGNNOutput(
-            baseFilePath + "outputTGNN_proper.txt");
-
-        for (const auto& pair : tgnnResults)
-        {
-            int    tid   = pair.first;
-            double score = pair.second;
-
-            // Track the master tower's score
-            if ((MacNodeId)tid == masterId_)
-                tgnn_masterScore = score;
-
-            // Track the best non-master tower
-            if ((MacNodeId)tid != masterId_ && score > tgnn_bestScore)
-            {
-                tgnn_bestScore   = score;
-                tgnn_bestTowerId = (MacNodeId)tid;
+    // Determine which tower the improved TGNN recommends
+    MacNodeId tgnnSelectedTower = masterId_;  // default: stay on current master
+    double tgnnBestScore = -1e9;
+    if (!tgnnResults.empty()) {
+        for (const auto& pr : tgnnResults) {
+            if (pr.second > tgnnBestScore) {
+                tgnnBestScore = pr.second;
+                tgnnSelectedTower = (MacNodeId)pr.first;
             }
         }
-
-        // Resolve best RSRP: if TGNN recommends the candidate tower we just
-        // measured, use that measurement; otherwise fall back to master RSRP.
-        if (tgnn_bestTowerId == candidateMasterId_)
-            tgnn_bestRSRP = maxRSRP;
-        else if (tgnn_bestTowerId == masterId_)
-            tgnn_bestRSRP = currentMasterRsrp_;
-        // else: unknown tower — keep tgnn_bestRSRP = currentMasterRsrp_ (stay safe)
     }
+    // Store best score for CSV logging (replaces old predScaValTGNN scalar)
+    predScaValTGNN = tgnnBestScore;
 
-    // Store a scalar for the CSV column (use best candidate score or 0)
-    predScaValTGNN = (tgnn_bestScore > 0.0) ? tgnn_bestScore : 0.0;
-
-    NazaninHandoverDecision::SpeedCategory speedCategory = HoMng->getSpeedCategory(vSpeed);
+    // ── Speed category & virtual cell
+    NazaninHandoverDecision::SpeedCategory speedCategory = HoMng->getSpeedCategory(vSpeedKmh);
     vehicleCountBySpeedLst[speedCategory]++;
-    addToVC(nodeId_, lteInfo->getSourceId(), closestTowerLst, speedCategory, scalPara, predScaValLSTM, predScaValTGNN);
+    addToVC(nodeId_, lteInfo->getSourceId(), closestTowerLst, speedCategory,
+            scalPara, predScaValLSTM, predScaValTGNN);
 
+    // ── Reward & Q-value bookkeeping (unchanged)
     HoMng->calculateReward(rewd, rssi, avgLoad, distanceDouble, last_srv_MasterIdV);
-
     if ((int)simTime().dbl() % 2 == 0)
         last_srv_MasterIdV.clear();
-
     HoMng->calculateTimeInterval(vIndiSpeed, srl_alpha, srl_gamma);
 
-    // Snapshot candidateRSSI before it may be overwritten in the branch below
-    double candidateRSSI_snapshot = candidateMasterRssi_;
-
-    // ── TGNN tower-selection signal → sel_srv / mbr assignment ──────────── //
-    // TGNN recommends a handover when:
-    //   (a) it found a better tower (bestTowerId != 0 and != master), AND
-    //   (b) the confidence margin is large enough (avoids noise-driven flipping)
-    // When TGNN recommends staying on the master, or has no recommendation,
-    // we set sel_srv_Qvalue_id to the current tower (no handover).
-    bool tgnn_recommends_ho = (tgnn_bestTowerId != 0)
-                           && (tgnn_bestTowerId != masterId_)
-                           && ((tgnn_bestScore - tgnn_masterScore) > TGNN_CONFIDENCE_MARGIN);
-
-    if (tgnn_recommends_ho)
-    {
-        sel_srv_Qvalue_id = tgnn_bestTowerId;
-    }
-    else
-    {
-        sel_srv_Qvalue_id = lteInfo->getSourceId();
-    }
-
+    // ── Serving tower broadcast handling
     if (getNodeTypeById(lteInfo->getSourceId()) == ENODEB && lteInfo->getSourceId() == masterId_)
     {
-        rssi      = das_->receiveBroadcast(frame, lteInfo);
-        rsrq      = (10 * maxRSRP) / rssi;
+        rssi = das_->receiveBroadcast(frame, lteInfo);
+        rsrq = (10 * maxRSRP) / rssi;
         distanceDouble = HoMng->getParfromFile(baseFilePath + "distanceFile.txt");
-        speedDouble    = HoMng->getParfromFile("/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt");
-
+        speedDouble = HoMng->getParfromFile(
+            "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt");
         avg_srv_QvalueV.push_back(upt_Qvalue);
-        avg_srv_Qvalue = std::accumulate(avg_srv_QvalueV.begin(), avg_srv_QvalueV.end(), 0.0) / avg_srv_QvalueV.size();
+        avg_srv_Qvalue = std::accumulate(avg_srv_QvalueV.begin(), avg_srv_QvalueV.end(), 0.0)
+                         / avg_srv_QvalueV.size();
         last_srv_MasterIdV.push_back(masterId_);
         srv_Qvalue = rsrq + (200 - maxSINR);
     }
     else
     {
-        auto result2 = HoMng->calculateMetrics(primaryChannelModel_, frame, lteInfo);
-        rssi    = std::get<0>(result2);
-        maxSINR = std::get<1>(result2);
-        maxRSRP = std::get<2>(result2);
-        rsrq    = std::get<3>(result2);
-        speedDouble = HoMng->getParfromFile("/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt");
+        auto r2 = HoMng->calculateMetrics(primaryChannelModel_, frame, lteInfo);
+        rssi    = std::get<0>(r2);
+        maxSINR = std::get<1>(r2);
+        maxRSRP = std::get<2>(r2);
+        rsrq    = std::get<3>(r2);
+        speedDouble = HoMng->getParfromFile(
+            "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/ChannelModel/speedFile.txt");
         mbr_Qvalue = rsrq + (200 - maxSINR);
     }
 
@@ -792,199 +599,96 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
         return;
     }
 
-    // legacy tgnnWindow_ diff stream
-    if (tgnnWindow_.size() == TGNN_STEPS)
-    {
-        const std::string tgnnTestPath =
-            "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/"
-            "simu5G/src/stack/phy/layer/inputTGNNdiffTestData.txt";
-
-        std::ofstream testFile(tgnnTestPath, std::ios::trunc);
-        if (!testFile.is_open())
-        {
-            EV << "Error: Cannot open TGNN diff test file for writing: " << tgnnTestPath << "\n";
-        }
-        else
-        {
-            for (const auto& line : tgnnWindow_)
-                testFile << line << std::endl;
-            testFile.close();
-            updateQvaluesFromTGNN();
-        }
-    }
-
-    // ── Handover decision ───────────────────────────────────────────────── //
-    // Both TGNN and LSTM now drive the same decision path, but they arrive
-    // at sel_srv_Qvalue_id through different mechanisms:
-    //   TGNN: tower-selection by argmax score + confidence margin (above)
-    //   LSTM: scalar signal prediction compared against measured RSSI (below)
-    //
-    // The hysteresis check now compares the *recommended tower's RSRP*
-    // against the current master's RSRP — both are in the same dB scale.
+    // ══════════════════════════════════════════════════════════════════
+    //  HANDOVER DECISION — driven by improved TGNN (outputTGNN_proper.txt)
+    // ══════════════════════════════════════════════════════════════════
     MacNodeId selectedTower = 0;
 
-    // For TGNN: use tgnn_bestRSRP (RSRP of TGNN-recommended tower)
-    // For LSTM: keep existing scalar comparison using predScaValLSTM vs RSSI
-    // The active decision model is TGNN (sel_srv_Qvalue_id already set above).
-
-    // Dwell-time guard: suppress any HO within TGNN_MIN_DWELL_TIME seconds
-    // of the last one. This prevents the VC fallback path from ping-ponging
-    // immediately after each TGNN handover.
-    bool inDwellPeriod = (simTime().dbl() - tgnn_lastHoSimTime) < TGNN_MIN_DWELL_TIME;
-
-    // TGNN HO condition: recommended tower RSRP beats master by hysteresis margin
-    bool tgnn_should_ho = !inDwellPeriod
-                       && tgnn_recommends_ho
-                       && (tgnn_bestRSRP > currentMasterRsrp_ + hysteresisRsrpTh_);
-
-    if (tgnn_should_ho)
+    if (tgnnSelectedTower != masterId_)
     {
-        if (lteInfo->getSourceId() == masterId_)
-            testMasterIDCount++;
+        // Improved TGNN recommends switching to a different tower
         totalScalarParaConditionedPassed++;
+        sel_srv_Qvalue_id = tgnnSelectedTower;
 
-        if (sel_srv_Qvalue_id == masterId_)
-        {
-            updateCurrentMaster(rssi, maxSINR, maxRSRP, distanceDouble, speedDouble);
-            candidateMasterId_ = masterId_;
-            oldMasterId_       = masterId_;
-            performHysteresisUpdate(currentMasterRssi_, currentMasterSinr_,
-                                    currentMasterRsrp_, currentMasterDist_);
-            cancelEvent(handoverStarter_);
-        }
+        if (checkIfTowerExistsInMap((int)tgnnSelectedTower))
+            isIntraHO = true;
         else
-        {
-            if (checkIfTowerExistsInMap(lteInfo->getSourceId()))
-                isIntraHO = true;
-            else
-                isIntraHO = false;
-            selectedTower      = sel_srv_Qvalue_id;
-            tgnn_lastHoSimTime = simTime().dbl();   // reset dwell timer
-            handlenormalHandover(rssi, rsrq, maxSINR, maxRSRP, speedDouble,
-                                 distanceDouble, speedCategory, isIntraHO);
-            testHODecisionByScalarCount++;
-        }
+            isIntraHO = false;
+
+        selectedTower = sel_srv_Qvalue_id;
+        handlenormalHandover(rssi, rsrq, maxSINR, maxRSRP, speedDouble,
+                             distanceDouble, speedCategory, isIntraHO);
+        testHODecisionByScalarCount++;
     }
-    else if (!inDwellPeriod
-             && (masterId_ != lteInfo->getSourceId())
-             && checkIfCellTowerPairExistsInMap(lteInfo->getSourceId(), nodeId_))
+    // Virtual-cell proximity handover (SVR-predicted position path, unchanged)
+    else if ((masterId_ != lteInfo->getSourceId()) &&
+             checkIfCellTowerPairExistsInMap(lteInfo->getSourceId(), nodeId_))
     {
-        // Virtual-cell / closest-tower fallback path — also gated by dwell timer
-        sel_srv_Qvalue_id  = lteInfo->getSourceId();
-        isIntraHO          = true;
-        selectedTower      = sel_srv_Qvalue_id;
-        tgnn_lastHoSimTime = simTime().dbl();       // reset dwell timer
+        sel_srv_Qvalue_id = lteInfo->getSourceId();
+        isIntraHO = true;
+        selectedTower = sel_srv_Qvalue_id;
         handlenormalHandover(rssi, rsrq, maxSINR, maxRSRP, speedDouble,
                              distanceDouble, speedCategory, isIntraHO);
         testHODecisionBySpeedCount++;
     }
     else
     {
+        // TGNN recommends staying — update current master state
         if (lteInfo->getSourceId() == masterId_)
         {
             if (rssi >= minRssi_)
             {
-                currentMasterRssi_   = rssi;
-                candidateMasterRssi_ = rssi;
-                hysteresisTh_        = updateHysteresisTh(rssi);
+                updateCurrentMaster(rssi, maxSINR, maxRSRP, distanceDouble, speedDouble);
+                candidateMasterId_ = masterId_;
+                oldMasterId_ = masterId_;
+                performHysteresisUpdate(currentMasterRssi_, currentMasterSinr_,
+                                        currentMasterRsrp_, currentMasterDist_);
+                cancelEvent(handoverStarter_);
             }
-            else
+            else  // lost connection from current master
             {
                 if (candidateMasterId_ == masterId_)
                 {
-                    candidateMasterId_   = 0;
+                    candidateMasterId_ = 0;
                     candidateMasterRssi_ = 0;
-                    hysteresisTh_        = updateHysteresisTh(0);
+                    hysteresisTh_ = updateHysteresisTh(0);
                     handleFailureHandover(0, 0, 0, 0, maxRSRP, 0, 0, speedCategory);
                 }
             }
         }
     }
+    // ══════════════════════════════════════════════════════════════════
 
-    // ── Per-model metric tracking ────────────────────────────────────────── //
-    // Use maxRSRP (the freshly measured RSRP for this tick's tower) rather than
-    // currentMasterRsrp_ which is only updated on confirmed handovers and is
-    // often 0 or stale — causing the Shannon formula to produce absurd values.
-    //
-    // maxRSRP  = RSRP of the tower this broadcast came from (candidate or master)
-    // currentMasterRsrp_ = last confirmed master RSRP (may be stale/zero)
-    //
-    // For throughput we always want a fresh per-tick measurement.
-    // If the model chose the master tower, use currentMasterRsrp_ only if it
-    // looks valid (< 0 dBm, i.e. a real RSRP reading).  Otherwise fall back
-    // to maxRSRP (which is the measured value for this frame regardless of tower).
-    {
-        auto safeRSRP = [](double cached, double measured) -> double {
-            // A valid RSRP is negative (dBm range typically -50 to -120).
-            // If the cached value is 0 or positive it is uninitialised — use measured.
-            return (cached < -1.0) ? cached : measured;
-        };
-
-        // TGNN
-        MacNodeId tgnn_decided = tgnn_recommends_ho ? tgnn_bestTowerId : masterId_;
-        double    tgnn_rsrp;
-        if (tgnn_decided == masterId_)
-            tgnn_rsrp = safeRSRP(currentMasterRsrp_, maxRSRP);
-        else
-            tgnn_rsrp = (tgnn_bestRSRP < -1.0) ? tgnn_bestRSRP : maxRSRP;
-
-        updateModelMetrics(
-            tgnn_decided, masterId_, tgnn_rsrp, simTime().dbl(),
-            tgnn_hoTotal, tgnn_pingPongTotal,
-            tgnn_rsrpSum, tgnn_rsrpCount,
-            tgnn_packetDelivered, tgnn_packetTotal,
-            tgnn_towerHistory, tgnn_hoTimestamps
-        );
-
-        // LSTM
-        MacNodeId lstm_decided = (predScaValLSTM > candidateRSSI_snapshot)
-                                 ? masterId_ : candidateMasterId_;
-        double    lstm_rsrp;
-        if (lstm_decided == masterId_)
-            lstm_rsrp = safeRSRP(currentMasterRsrp_, maxRSRP);
-        else
-            lstm_rsrp = maxRSRP;
-
-        updateModelMetrics(
-            lstm_decided, masterId_, lstm_rsrp, simTime().dbl(),
-            lstm_hoTotal, lstm_pingPongTotal,
-            lstm_rsrpSum, lstm_rsrpCount,
-            lstm_packetDelivered, lstm_packetTotal,
-            lstm_towerHistory, lstm_hoTimestamps
-        );
-    }
-
-    // Write CSV row
+    // ── Write CSV row
     CSVRow newRow;
-    newRow.timestamp            = simTime().dbl();
-    newRow.vehicleId            = nodeId_;
-    newRow.masterId_            = masterId_;
-    newRow.candidateMasterId_   = candidateMasterId_;
-    newRow.signalQuality        = rssi;
-    newRow.masterDistance       = currentMasterDist_;
-    newRow.candidateDistance    = distanceDouble;
-    newRow.masterSpeed          = currentMasterSpeed_;
-    newRow.candidateSpeed       = speedDouble;
-    newRow.vehicleDirection     = dirMacNodeId;
+    newRow.timestamp             = simTime().dbl();
+    newRow.vehicleId             = nodeId_;
+    newRow.masterId_             = masterId_;
+    newRow.candidateMasterId_    = candidateMasterId_;
+    newRow.signalQuality         = rssi;
+    newRow.masterDistance        = currentMasterDist_;
+    newRow.candidateDistance     = distanceDouble;
+    newRow.masterSpeed           = currentMasterSpeed_;
+    newRow.candidateSpeed        = speedDouble;
+    newRow.vehicleDirection      = dirMacNodeId;
     newRow.candidateTowerPositionx = towerPosition.x;
     newRow.candidateTowerPositiony = towerPosition.y;
     newRow.candidateTowerPositionz = towerPosition.z;
-    newRow.vehiclePositionx     = vPositionx;
-    newRow.vehiclePositiony     = vPositiony;
-    newRow.vehiclePositionz     = vPositionz;
-    newRow.masterRSSI           = currentMasterRssi_;
-    newRow.candidateRSSI        = rssi;
-    newRow.masterSINR           = maxSINR;
-    newRow.candidateSINR        = currentMasterSinr_;
-    newRow.masterRSRP           = currentMasterRsrp_;
-    newRow.candidateRSRP        = maxRSRP;
-    newRow.predictedLSTM        = predScaValLSTM;
-    newRow.predictedTGNN        = predScaValTGNN;
-    newRow.selectedTower        = selectedTower;
-
+    newRow.vehiclePositionx      = vPositionx;
+    newRow.vehiclePositiony      = vPositiony;
+    newRow.vehiclePositionz      = vPositionz;
+    newRow.masterRSSI            = currentMasterRssi_;
+    newRow.candidateRSSI         = rssi;
+    newRow.masterSINR            = maxSINR;
+    newRow.candidateSINR         = currentMasterSinr_;
+    newRow.masterRSRP            = currentMasterRsrp_;
+    newRow.candidateRSRP         = maxRSRP;
+    newRow.predictedLSTM         = predScaValLSTM;
+    newRow.predictedTGNN         = predScaValTGNN;
+    newRow.selectedTower         = selectedTower;
     addRowToCSV(csvFilePath, newRow);
-    performanceAnalysis();
 
+    performanceAnalysis();
     delete frame;
 }
 
@@ -992,15 +696,6 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo)
 
 void LtePhyUe::triggerHandover()
 {
-    if (candidateMasterRssi_ == 0)
-    {
-        // UE lost connection to master — detaching
-    }
-    else if (masterId_ == 0)
-    {
-        // UE starting attachment
-    }
-
     binder_->addUeHandoverTriggered(nodeId_);
 
     IP2Nic* ip2nic = check_and_cast<IP2Nic*>(getParentModule()->getSubmodule("ip2nic"));
@@ -1016,12 +711,9 @@ void LtePhyUe::triggerHandover()
     }
 
     double handoverLatency;
-    if (masterId_ == 0)
-        handoverLatency = handoverAttachment_;
-    else if (candidateMasterId_ == 0)
-        handoverLatency = handoverDetachment_;
-    else
-        handoverLatency = handoverDetachment_ + handoverAttachment_;
+    if (masterId_ == 0)          handoverLatency = handoverAttachment_;
+    else if (candidateMasterId_ == 0) handoverLatency = handoverDetachment_;
+    else                         handoverLatency = handoverDetachment_ + handoverAttachment_;
 
     handoverTrigger_ = new cMessage("handoverTrigger");
     scheduleAt(simTime() + handoverLatency, handoverTrigger_);
@@ -1029,19 +721,20 @@ void LtePhyUe::triggerHandover()
 
 void LtePhyUe::doHandover()
 {
-    std::cout << "doHandover method -> handover from: " << masterId_ << " to: " << candidateMasterId_ << std::endl;
+    std::cout << "doHandover method -> handover from: " << masterId_
+              << " to: " << candidateMasterId_ << std::endl;
 
     if (masterId_ != 0)
     {
         deleteOldBuffers(masterId_);
-        LteAmc* oldAmc = getAmcModule(masterId_);
+        LteAmc *oldAmc = getAmcModule(masterId_);
         oldAmc->detachUser(nodeId_, UL);
         oldAmc->detachUser(nodeId_, DL);
     }
 
     if (candidateMasterId_ != 0)
     {
-        LteAmc* newAmc = getAmcModule(candidateMasterId_);
+        LteAmc *newAmc = getAmcModule(candidateMasterId_);
         assert(newAmc != nullptr);
         newAmc->attachUser(nodeId_, UL);
         newAmc->attachUser(nodeId_, DL);
@@ -1062,7 +755,6 @@ void LtePhyUe::doHandover()
 
     MacNodeId oldMaster = masterId_;
     masterId_ = candidateMasterId_;
-
     mac_->doHandover(candidateMasterId_);
     currentMasterRssi_ = candidateMasterRssi_;
     hysteresisTh_ = updateHysteresisTh(currentMasterRssi_);
@@ -1092,7 +784,6 @@ void LtePhyUe::doHandover()
     fbGen->handleHandover(masterId_);
 
     emit(servingCell_, (long)masterId_);
-
     binder_->removeUeHandoverTriggered(nodeId_);
 
     IP2Nic* ip2nic = check_and_cast<IP2Nic*>(getParentModule()->getSubmodule("ip2nic"));
@@ -1110,29 +801,16 @@ void LtePhyUe::doHandover()
 void LtePhyUe::handleAirFrame(cMessage* msg)
 {
     UserControlInfo* lteInfo = dynamic_cast<UserControlInfo*>(msg->removeControlInfo());
-
-    if (useBattery_)
-    {
-        // TODO BatteryAccess::drawCurrent(rxAmount_, 0);
-    }
+    if (useBattery_) { /* TODO */ }
     connectedNodeId_ = masterId_;
     LteAirFrame* frame = check_and_cast<LteAirFrame*>(msg);
 
     int sourceId = binder_->getOmnetId(lteInfo->getSourceId());
-    if (sourceId == 0)
-    {
-        delete msg;
-        return;
-    }
+    if (sourceId == 0) { delete msg; return; }
 
     double carrierFreq = lteInfo->getCarrierFrequency();
     LteChannelModel* channelModel = getChannelModel(carrierFreq);
-    if (channelModel == NULL)
-    {
-        delete lteInfo;
-        delete frame;
-        return;
-    }
+    if (channelModel == NULL) { delete lteInfo; delete frame; return; }
 
     if (lteInfo->getFrameType() == HANDOVERPKT)
     {
@@ -1147,20 +825,11 @@ void LtePhyUe::handleAirFrame(cMessage* msg)
         return;
     }
 
-    if (lteInfo->getDestId() != nodeId_)
-    {
-        delete lteInfo;
-        delete frame;
-        return;
-    }
+    if (lteInfo->getDestId() != nodeId_) { delete lteInfo; delete frame; return; }
+    if (lteInfo->getSourceId() != masterId_) { delete frame; return; }
 
-    if (lteInfo->getSourceId() != masterId_)
-    {
-        delete frame;
-        return;
-    }
-
-    if (lteInfo->getFrameType() == HARQPKT || lteInfo->getFrameType() == GRANTPKT ||
+    if (lteInfo->getFrameType() == HARQPKT ||
+        lteInfo->getFrameType() == GRANTPKT ||
         lteInfo->getFrameType() == RACPKT)
     {
         handleControlMsg(frame, lteInfo);
@@ -1170,8 +839,7 @@ void LtePhyUe::handleAirFrame(cMessage* msg)
     if ((lteInfo->getUserTxParams()) != nullptr)
     {
         int cw = lteInfo->getCw();
-        if (lteInfo->getUserTxParams()->readCqiVector().size() == 1)
-            cw = 0;
+        if (lteInfo->getUserTxParams()->readCqiVector().size() == 1) cw = 0;
         double cqi = lteInfo->getUserTxParams()->readCqiVector()[cw];
         emit(averageCqiDl_, cqi);
         recordCqi(cqi, DL);
@@ -1198,13 +866,11 @@ void LtePhyUe::handleAirFrame(cMessage* msg)
     if (result) numAirFrameReceived_++;
     else        numAirFrameNotReceived_++;
 
-    auto pkt = check_and_cast<inet::Packet*>(frame->decapsulate());
+    auto pkt = check_and_cast<inet::Packet *>(frame->decapsulate());
     delete frame;
-
     lteInfo->setDeciderResult(result);
     *(pkt->addTagIfAbsent<UserControlInfo>()) = *lteInfo;
     delete lteInfo;
-
     send(pkt, upperGateOut_);
 
     if (getEnvir()->isGUI())
@@ -1213,7 +879,7 @@ void LtePhyUe::handleAirFrame(cMessage* msg)
 
 void LtePhyUe::handleUpperMessage(cMessage* msg)
 {
-    auto pkt = check_and_cast<inet::Packet*>(msg);
+    auto pkt = check_and_cast<inet::Packet *>(msg);
     auto lteInfo = pkt->getTag<UserControlInfo>();
 
     MacNodeId dest = lteInfo->getDestId();
@@ -1223,14 +889,15 @@ void LtePhyUe::handleUpperMessage(cMessage* msg)
     double carrierFreq = lteInfo->getCarrierFrequency();
     LteChannelModel* channelModel = getChannelModel(carrierFreq);
     if (channelModel == NULL)
-        throw cRuntimeError("LtePhyUe::handleUpperMessage - Carrier frequency [%f] not supported by any channel model", carrierFreq);
+        throw cRuntimeError("LtePhyUe::handleUpperMessage - Carrier frequency [%f] not supported", carrierFreq);
 
     if (lteInfo->getFrameType() == DATAPKT &&
         (channelModel->isUplinkInterferenceEnabled() || channelModel->isD2DInterferenceEnabled()))
     {
         RbMap rbMap = lteInfo->getGrantedBlocks();
         Remote antenna = MACRO;
-        binder_->storeUlTransmissionMap(channelModel->getCarrierFrequency(), antenna, rbMap, nodeId_, mac_->getMacCellId(), this, UL);
+        binder_->storeUlTransmissionMap(channelModel->getCarrierFrequency(), antenna, rbMap,
+                                        nodeId_, mac_->getMacCellId(), this, UL);
     }
 
     if (lteInfo->getFrameType() == DATAPKT && lteInfo->getUserTxParams() != nullptr)
@@ -1249,8 +916,8 @@ void LtePhyUe::handleUpperMessage(cMessage* msg)
 }
 
 void LtePhyUe::addToVC(double vehicleID, int curtowerID, std::vector<int> closestTowerLst,
-    NazaninHandoverDecision::SpeedCategory speedCategory,
-    double scalar, double predictedLSTM, double predictedTGNN)
+                        NazaninHandoverDecision::SpeedCategory speedCategory,
+                        double scalar, double predictedLSTM, double predictedTGNN)
 {
     if (simTime().dbl() != vc_cur_simtime)
     {
@@ -1328,15 +995,15 @@ double LtePhyUe::updateHysteresisTowerLoad(double v)
 
 void LtePhyUe::deleteOldBuffers(MacNodeId masterId)
 {
-    LteMacEnb* masterMac = check_and_cast<LteMacEnb*>(getMacByMacNodeId(masterId));
+    LteMacEnb *masterMac = check_and_cast<LteMacEnb *>(getMacByMacNodeId(masterId));
     masterMac->deleteQueues(nodeId_);
     mac_->deleteQueues(masterId_);
 
-    LteRlcUm* masterRlcUm = check_and_cast<LteRlcUm*>(getRlcByMacNodeId(masterId, UM));
+    LteRlcUm *masterRlcUm = check_and_cast<LteRlcUm*>(getRlcByMacNodeId(masterId, UM));
     masterRlcUm->deleteQueues(nodeId_);
     rlcUm_->deleteQueues(nodeId_);
 
-    LtePdcpRrcEnb* masterPdcp = check_and_cast<LtePdcpRrcEnb*>(getPdcpByMacNodeId(masterId));
+    LtePdcpRrcEnb* masterPdcp = check_and_cast<LtePdcpRrcEnb *>(getPdcpByMacNodeId(masterId));
     masterPdcp->deleteEntities(nodeId_);
     pdcp_->deleteEntities(masterId_);
 }
@@ -1349,7 +1016,6 @@ DasFilter* LtePhyUe::getDasFilter()
 void LtePhyUe::sendFeedback(LteFeedbackDoubleVector fbDl, LteFeedbackDoubleVector fbUl, FeedbackRequest req)
 {
     Enter_Method("SendFeedback");
-
     auto fbPkt = makeShared<LteFeedbackPkt>();
     fbPkt->setLteFeedbackDoubleVectorDl(fbDl);
     fbPkt->setLteFeedbackDoubleVectorDl(fbUl);
@@ -1408,14 +1074,12 @@ double LtePhyUe::getVarianceCqi(Direction dir)
 {
     double avgCqi = getAverageCqi(dir);
     double err, sum = 0;
-    if (dir == DL)
-    {
+    if (dir == DL) {
         for (auto it = cqiDlSamples_.begin(); it != cqiDlSamples_.end(); ++it)
         { err = avgCqi - *it; sum = (err * err); }
         return sum / cqiDlSamples_.size();
     }
-    if (dir == UL)
-    {
+    if (dir == UL) {
         for (auto it = cqiUlSamples_.begin(); it != cqiUlSamples_.end(); ++it)
         { err = avgCqi - *it; sum = (err * err); }
         return sum / cqiUlSamples_.size();
@@ -1430,12 +1094,8 @@ void LtePhyUe::finish()
         if (masterId_ > 0)
         {
             deleteOldBuffers(masterId_);
-            LteAmc* amc = getAmcModule(masterId_);
-            if (amc != nullptr)
-            {
-                amc->detachUser(nodeId_, UL);
-                amc->detachUser(nodeId_, DL);
-            }
+            LteAmc *amc = getAmcModule(masterId_);
+            if (amc != nullptr) { amc->detachUser(nodeId_, UL); amc->detachUser(nodeId_, DL); }
             binder_->unregisterNextHop(masterId_, nodeId_);
             cellInfo_->detachUser(nodeId_);
         }
@@ -1449,10 +1109,11 @@ void LtePhyUe::performanceAnalysis()
         "SPEED_81100", "SPEED_101120", "SPEED_121140", "SPEED_141160", "SPEED_160PLUS"
     };
 
-    std::ofstream outFile(baseFilePath + "performanceAnalysis.txt", std::ios::app);
-    if (!outFile.is_open())
-    {
-        std::cerr << "Error opening performanceAnalysis.txt for writing!" << std::endl;
+    std::ofstream outFile(
+        "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/layer/performanceAnalysis.txt",
+        std::ios::app);
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening file for writing!" << std::endl;
         return;
     }
 
@@ -1460,133 +1121,51 @@ void LtePhyUe::performanceAnalysis()
     {
         isPerformedAnalysis = true;
 
-        // ── Shannon throughput helper (20 MHz, RSRP-based SINR proxy) ─────── //
-        // RSRP valid range: −44 dBm (very close) to −120 dBm (edge of coverage)
-        // SINR = RSRP − noise_floor.  Noise floor for 20 MHz NR ≈ −100 dBm.
-        // Clamp SINR to [−10, 30] dB — the realistic operating range for NR.
-        // This prevents uninitialised/stale RSRP values from producing
-        // physically impossible throughput figures (e.g. 644 Mbps).
-        auto rsrpToThroughputMbps = [](double rsrpSum, long count) -> double {
-            if (count == 0) return 0.0;
-            double avgRSRP    = rsrpSum / (double)count;
-            // Clamp to valid RSRP range before applying formula
-            avgRSRP           = std::max(-120.0, std::min(-44.0, avgRSRP));
-            double sinrDB     = avgRSRP + 100.0;            // noise floor ~ -100 dBm for 20 MHz NR
-            sinrDB            = std::max(-10.0, std::min(30.0, sinrDB));  // clamp to realistic range
-            double sinrLinear = std::pow(10.0, sinrDB / 10.0);
-            return (20.0e6 * std::log2(1.0 + sinrLinear)) / 1.0e6;  // Mbps
-        };
-
-        double tgnn_pdr        = (tgnn_packetTotal > 0) ? tgnn_packetDelivered / tgnn_packetTotal : 0.0;
-        double tgnn_plr        = 1.0 - tgnn_pdr;
-        double tgnn_throughput = rsrpToThroughputMbps(tgnn_rsrpSum, tgnn_rsrpCount);
-
-        double lstm_pdr        = (lstm_packetTotal > 0) ? lstm_packetDelivered / lstm_packetTotal : 0.0;
-        double lstm_plr        = 1.0 - lstm_pdr;
-        double lstm_throughput = rsrpToThroughputMbps(lstm_rsrpSum, lstm_rsrpCount);
-
-        // ── Existing text-format performance report (unchanged) ───────────── //
         outFile << "testHODecisionByScalarCount: " << testHODecisionByScalarCount
                 << " testHODecisionBySpeedCount: " << testHODecisionBySpeedCount
                 << " totalScalarParaConditionedPassed: " << totalScalarParaConditionedPassed
                 << " testMasterIDCount: " << testMasterIDCount
                 << " testTotalClosestTowerFound: " << testTotalClosestTowerFound
-                << " Doing Ritika New TGNN Testing" << "\n\n";
+                << " [ImprovedTGNN active]\n\n";
 
         outFile << "Total Vehicle: " << vehicleCountTotal << " Simtime: " << simTime().dbl() << "\n\n";
 
         outFile << "---------------------------------------------INTRA-----------------------------------------------------\n\n";
-        outFile << "INTRA VC HO Total: " << insideVCHOTotal << " Avg Num of Intra-VC HO: " << insideVCHOTotal / vehicleCountTotal << "\n\n";
-        outFile << "INTRA VC: Cumulative Time: " << insideVCHOTime << ", Avg INTRA VC HO Time: " << insideVCHOTime / insideVCHOTotal << "\n\n";
-        outFile << "-------------------Percentages of INTRA-VC HO vs speed---------\n";
+        outFile << "INTRA VC HO Total: " << insideVCHOTotal
+                << " Avg: " << insideVCHOTotal / vehicleCountTotal << "\n\n";
+        outFile << "INTRA VC Cumulative Time: " << insideVCHOTime
+                << ", Avg: " << insideVCHOTime / insideVCHOTotal << "\n\n";
         for (int speed = 0; speed < NazaninHandoverDecision::SPEED_COUNT; ++speed)
-            outFile << "Speed category: " << speedNames[speed]
+            outFile << "Speed: " << speedNames[speed]
                     << " Total: " << insideHOVehicleLst[speed]
-                    << " Percentage: " << (insideHOVehicleLst[speed] / insideVCHOTotal) << "\n";
+                    << " %: " << (insideHOVehicleLst[speed] / insideVCHOTotal) << "\n";
 
         outFile << "\n\n--------------------------------------------INTER/OUTSIDE VC----------------------------------------------\n\n";
-        outFile << "INTER VC HO Total: " << outsideVCHOTotal << " Avg Num of Inter-VC HO: " << outsideVCHOTotal / vehicleCountTotal << "\n\n";
-        outFile << "INTER VC: Cumulative Time: " << outsideVCHOTime << ", Avg INTER VC HO Time: " << outsideVCHOTime / outsideVCHOTotal << "\n\n";
-        outFile << "-------------------Percentages of INTER-VC HO vs speed---------\n";
+        outFile << "INTER VC HO Total: " << outsideVCHOTotal
+                << " Avg: " << outsideVCHOTotal / vehicleCountTotal << "\n\n";
+        outFile << "INTER VC Cumulative Time: " << outsideVCHOTime
+                << ", Avg: " << outsideVCHOTime / outsideVCHOTotal << "\n\n";
         for (int speed = 0; speed < NazaninHandoverDecision::SPEED_COUNT; ++speed)
-            outFile << "Speed Category: " << speedNames[speed]
+            outFile << "Speed: " << speedNames[speed]
                     << " Total: " << outsideHOVehicleLst[speed]
-                    << " Percentage: " << (outsideHOVehicleLst[speed] / outsideVCHOTotal) << "\n";
+                    << " %: " << (outsideHOVehicleLst[speed] / outsideVCHOTotal) << "\n";
 
         outFile << "\n\n----------------------------------------------Failed HO-----------------------------------------------------\n";
-        outFile << "Failed VC HO Total: " << failureHOTotal << " Avg Num of Failed HO: " << failureHOTotal / vehicleCountTotal << "\n\n";
+        outFile << "Failed HO Total: " << failureHOTotal
+                << " Avg: " << failureHOTotal / vehicleCountTotal << "\n\n";
 
         outFile << "-------------------------------------------------Ping Pong---------------------------------------------------\n";
-        outFile << "Ping Pong HO Total: " << pingPongHOTotal << ", Avg Num of Ping Pong HO: " << pingPongHOTotal / vehicleCountTotal << "\n\n";
+        outFile << "Ping Pong HO Total: " << pingPongHOTotal
+                << ", Avg: " << pingPongHOTotal / vehicleCountTotal << "\n\n";
 
-        outFile << "Total Virtual Cell: " << totalVCSize << " VC Size Ratio: " << (totalVCSize / vehicleCountTotal) / 100 << "\n\n";
-        outFile << "----------------------------------------------Size of VC over speed-----------------------------------------\n\n";
+        outFile << "Total Virtual Cell: " << totalVCSize
+                << " VC Size Ratio: " << (totalVCSize / vehicleCountTotal) / 100 << "\n\n";
+
         for (int speed = 0; speed < NazaninHandoverDecision::SPEED_COUNT; ++speed)
-            outFile << "Virtual Cell Size For Speed: " << speedNames[speed]
+            outFile << "VC For Speed: " << speedNames[speed]
                     << " VC Size: " << virtualcellCountBySpeedLst[speed]
-                    << " Total Vehicle: " << vehicleCountBySpeedLst[speed]
-                    << " Average Size: " << virtualcellCountBySpeedLst[speed] / vehicleCountBySpeedLst[speed] << "\n\n";
-
-        // ── NEW: Per-model comparison section ─────────────────────────────── //
-        outFile << "\n\n=========================================================\n";
-        outFile << "       TGNN vs LSTM  PERFORMANCE COMPARISON\n";
-        outFile << "=========================================================\n\n";
-
-        outFile << std::fixed << std::setprecision(4);
-
-        outFile << "Metric                          TGNN            LSTM\n";
-        outFile << "---------------------------------------------------------\n";
-        outFile << "Packet Delivery Ratio (PDR)     " << tgnn_pdr        << "          " << lstm_pdr        << "\n";
-        outFile << "Packet Loss Rate    (PLR)       " << tgnn_plr        << "          " << lstm_plr        << "\n";
-        outFile << "Total Handovers                 " << (long)tgnn_hoTotal << "              " << (long)lstm_hoTotal << "\n";
-        outFile << "Ping-Pong Handovers             " << (long)tgnn_pingPongTotal << "              " << (long)lstm_pingPongTotal << "\n";
-        outFile << "Avg Throughput (Mbps)           " << tgnn_throughput << "        " << lstm_throughput << "\n";
-        outFile << "---------------------------------------------------------\n\n";
-
-        outFile << "Notes:\n";
-        outFile << "  PDR/PLR threshold: RSRP > " << RSRP_LOSS_THRESHOLD_DBM << " dBm = delivered\n";
-        outFile << "  Throughput: Shannon capacity proxy, 20 MHz, RSRP-based SINR\n";
-        outFile << "  Ping-pong window: " << PP_WINDOW << " handover events\n";
-        outFile << "  Both models profiled simultaneously in a single simulation run\n\n";
-
-        // ── Machine-readable summary CSV for compare_models.py ───────────── //
-        // Open with trunc (not app) so each simulation run produces exactly
-        // 2 rows (one per model). Appending caused duplicate/stale rows when
-        // the simulation was run multiple times.
-        std::string summaryPath = baseFilePath + "performance_summary.csv";
-        std::ofstream summaryFile(summaryPath, std::ios::out | std::ios::trunc);
-        if (summaryFile.is_open())
-        {
-            summaryFile << "model,pdr,plr,handovers,ping_pong,throughput_mbps,"
-                           "total_vehicles,intra_ho,inter_ho,failed_ho,ping_pong_global\n";
-
-            summaryFile << "tgnn,"
-                        << tgnn_pdr        << ","
-                        << tgnn_plr        << ","
-                        << (long)tgnn_hoTotal << ","
-                        << (long)tgnn_pingPongTotal << ","
-                        << tgnn_throughput << ","
-                        << vehicleCountTotal << ","
-                        << insideVCHOTotal << ","
-                        << outsideVCHOTotal << ","
-                        << failureHOTotal  << ","
-                        << pingPongHOTotal << "\n";
-
-            summaryFile << "lstm,"
-                        << lstm_pdr        << ","
-                        << lstm_plr        << ","
-                        << (long)lstm_hoTotal << ","
-                        << (long)lstm_pingPongTotal << ","
-                        << lstm_throughput << ","
-                        << vehicleCountTotal << ","
-                        << insideVCHOTotal << ","
-                        << outsideVCHOTotal << ","
-                        << failureHOTotal  << ","
-                        << pingPongHOTotal << "\n";
-
-            summaryFile.close();
-            EV_INFO << "[PerfAnalysis] Wrote TGNN and LSTM rows to " << summaryPath << endl;
-        }
+                    << " Vehicles: " << vehicleCountBySpeedLst[speed]
+                    << " Avg: " << virtualcellCountBySpeedLst[speed] / vehicleCountBySpeedLst[speed] << "\n\n";
 
         finishSimTime = simTime().dbl();
     }
@@ -1597,16 +1176,17 @@ void LtePhyUe::performanceAnalysis()
         struct tm* now = localtime(&t);
         char buffer[80];
         strftime(buffer, 80, "%Y%m%d%H%M%S", now);
-        std::string oldFile = baseFilePath + "performanceAnalysis.txt";
-        std::string newFile = baseFilePath + "performanceAnalysis_" + std::string(buffer) + ".txt";
+        std::string oldFile = "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/simu5G/src/stack/phy/layer/performanceAnalysis.txt";
+        std::string newFile = oldFile.substr(0, oldFile.size() - 4) + "_" + std::string(buffer) + ".txt";
         rename(oldFile.c_str(), newFile.c_str());
     }
     outFile.close();
 }
 
 void LtePhyUe::handlenormalHandover(double rssi, double rsrq, double maxSINR, double maxRSRP,
-    double speedDouble, double distanceDouble,
-    NazaninHandoverDecision::SpeedCategory speedCategory, bool isIntraVCHO)
+                                     double speedDouble, double distanceDouble,
+                                     NazaninHandoverDecision::SpeedCategory speedCategory,
+                                     bool isIntraVCHO)
 {
     candidateMasterId_    = sel_srv_Qvalue_id;
     oldMasterId_          = candidateMasterId_;
@@ -1615,8 +1195,7 @@ void LtePhyUe::handlenormalHandover(double rssi, double rsrq, double maxSINR, do
     candidateMasterRsrp_  = maxRSRP;
     candidateMasterDist_  = distanceDouble;
     candidateMasterSpeed_ = speedDouble;
-
-    hysteresisTh_ = updateHysteresisTh(rssi);
+    hysteresisTh_         = updateHysteresisTh(rssi);
 
     binder_->addHandoverTriggered(nodeId_, masterId_, candidateMasterId_);
 
@@ -1624,14 +1203,12 @@ void LtePhyUe::handlenormalHandover(double rssi, double rsrq, double maxSINR, do
     tLoad[masterId_]--;
 
     ho_Qvalue = rsrq + (200 - maxSINR);
-    ho_rssi   = rssi;
-    ho_sinr   = maxSINR;
-    ho_rsrp   = maxRSRP;
-    ho_dist   = distanceDouble;
-    ho_load   = avgLoad;
+    ho_rssi = rssi; ho_sinr = maxSINR; ho_rsrp = maxRSRP;
+    ho_dist = distanceDouble; ho_load = avgLoad;
     avg_srv_QvalueV.clear();
 
-    if (std::find(last_srv_MasterIdV.begin(), last_srv_MasterIdV.end(), candidateMasterId_) != last_srv_MasterIdV.end())
+    if (std::find(last_srv_MasterIdV.begin(), last_srv_MasterIdV.end(), candidateMasterId_)
+        != last_srv_MasterIdV.end())
     {
         pingPongHOTotal++;
         pingPongHOVehicleLst[speedCategory]++;
@@ -1648,30 +1225,21 @@ void LtePhyUe::handlenormalHandover(double rssi, double rsrq, double maxSINR, do
     {
         outsideVCHOTotal++;
         outsideVCHOVehicleTotal++;
-        outsideVCHOTime = comHOTime + handoverLatency_ + handoverDetachment_ + handoverAttachment_ + handoverDelta_ + hoVC;
+        outsideVCHOTime = comHOTime + handoverLatency_ + handoverDetachment_
+                        + handoverAttachment_ + handoverDelta_ + hoVC;
         outsideHOVehicleLst[speedCategory]++;
     }
 
-    if (!handoverStarter_->isScheduled())
-    {
+    if (!handoverStarter_->isScheduled()) {
         handoverStarter_ = new cMessage("handoverStarter");
         scheduleAt(simTime() + handoverDelta_, handoverStarter_);
     }
-
-    // Write to legacy TGNN diff input file
-    std::ofstream tgnnFile;
-    tgnnFile.open(
-        "/home/ritika/Downloads/Ritika_Project/Project_GCN_LSTM_HO/"
-        "simu5G/src/stack/phy/layer/inputTGNNdiff.txt",
-        std::ios::app);
-    tgnnFile << simTime().dbl() << " " << getMacNodeId() << " "
-             << rssi << " " << maxSINR << " " << speedDouble << " " << distanceDouble << std::endl;
-    tgnnFile.close();
 }
 
 void LtePhyUe::handleFailureHandover(MacNodeId candidateID, double rssi, double rsrq,
-    double maxSINR, double maxRSRP, double speedDouble, double distanceDouble,
-    NazaninHandoverDecision::SpeedCategory speedCategory)
+                                      double maxSINR, double maxRSRP, double speedDouble,
+                                      double distanceDouble,
+                                      NazaninHandoverDecision::SpeedCategory speedCategory)
 {
     candidateMasterId_    = candidateID;
     oldMasterId_          = candidateMasterId_;
@@ -1683,7 +1251,8 @@ void LtePhyUe::handleFailureHandover(MacNodeId candidateID, double rssi, double 
 
     failureHOTotal++;
     failureHOVehicleTotal++;
-    failureHOTime = comHOTime + handoverLatency_ + handoverDetachment_ + handoverAttachment_ + handoverDelta_ + hoVC;
+    failureHOTime = comHOTime + handoverLatency_ + handoverDetachment_
+                  + handoverAttachment_ + handoverDelta_ + hoVC;
     failureHOVehicleLst[speedCategory]++;
 
     binder_->addHandoverTriggered(nodeId_, masterId_, candidateMasterId_);
@@ -1692,23 +1261,18 @@ void LtePhyUe::handleFailureHandover(MacNodeId candidateID, double rssi, double 
 }
 
 void LtePhyUe::updateCurrentMaster(double rssi, double maxSINR, double maxRSRP,
-    double distanceDouble, double speedDouble)
+                                    double distanceDouble, double speedDouble)
 {
-    currentMasterRssi_  = rssi;
-    currentMasterSinr_  = maxSINR;
-    currentMasterRsrp_  = maxRSRP;
-    currentMasterDist_  = distanceDouble;
-    currentMasterSpeed_ = speedDouble;
-
-    candidateMasterRssi_  = rssi;
-    candidateMasterSinr_  = maxSINR;
-    candidateMasterRsrp_  = maxRSRP;
-    candidateMasterDist_  = distanceDouble;
+    currentMasterRssi_    = rssi;    currentMasterSinr_  = maxSINR;
+    currentMasterRsrp_    = maxRSRP; currentMasterDist_  = distanceDouble;
+    currentMasterSpeed_   = speedDouble;
+    candidateMasterRssi_  = rssi;    candidateMasterSinr_ = maxSINR;
+    candidateMasterRsrp_  = maxRSRP; candidateMasterDist_ = distanceDouble;
     candidateMasterSpeed_ = speedDouble;
 }
 
 void LtePhyUe::performHysteresisUpdate(double currentMasterRssi_, double currentMasterSinr_,
-    double currentMasterRsrp_, double currentMasterDist_)
+                                        double currentMasterRsrp_, double currentMasterDist_)
 {
     hysteresisTh_     = updateHysteresisTh(currentMasterRssi_);
     hysteresisSinrTh_ = updateHysteresisThMinSinr(currentMasterSinr_);
