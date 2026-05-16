@@ -1851,3 +1851,259 @@ VC For Speed: SPEED_141160 VC Size: 0 Vehicles: 0 Avg: -nan
 
 VC For Speed: SPEED_160PLUS VC Size: 0 Vehicles: 0 Avg: -nan
 
+testHODecisionByScalarCount: 52 testHODecisionBySpeedCount: 3251 totalScalarParaConditionedPassed: 52 testMasterIDCount: 0 testTotalClosestTowerFound: 2205 [ImprovedTGNN active]
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3263 Avg: 3.42034
+
+INTRA VC Cumulative Time: 0.55, Avg: 0.000168557
+
+Speed: SPEED_020 Total: 3263 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 40 Avg: 0.0419287
+
+INTER VC Cumulative Time: 8.80001, Avg: 0.22
+
+Speed: SPEED_020 Total: 40 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed HO Total: 1 Avg: 0.00104822
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 0, Avg: 0
+
+Total Virtual Cell: 6277 VC Size Ratio: 0.0657966
+
+VC For Speed: SPEED_020 VC Size: 6277 Vehicles: 4481 Avg: 1.4008
+
+VC For Speed: SPEED_2140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_4160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_6180 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_81100 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_101120 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_121140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_141160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_160PLUS VC Size: 0 Vehicles: 0 Avg: -nan
+
+testHODecisionByScalarCount: 52 testHODecisionBySpeedCount: 3198 totalScalarParaConditionedPassed: 52 testMasterIDCount: 0 testTotalClosestTowerFound: 2205 [ImprovedTGNN active]
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3210 Avg: 3.36478
+
+INTRA VC Cumulative Time: 0.55, Avg: 0.00017134
+
+Speed: SPEED_020 Total: 3210 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 40 Avg: 0.0419287
+
+INTER VC Cumulative Time: 2.35001, Avg: 0.0587503
+
+Speed: SPEED_020 Total: 40 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed HO Total: 1 Avg: 0.00104822
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 0, Avg: 0
+
+Total Virtual Cell: 6209 VC Size Ratio: 0.0650839
+
+VC For Speed: SPEED_020 VC Size: 6209 Vehicles: 4481 Avg: 1.38563
+
+VC For Speed: SPEED_2140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_4160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_6180 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_81100 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_101120 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_121140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_141160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_160PLUS VC Size: 0 Vehicles: 0 Avg: -nan
+
+testHODecisionByScalarCount: 52 testHODecisionBySpeedCount: 3190 totalScalarParaConditionedPassed: 52 testMasterIDCount: 0 testTotalClosestTowerFound: 2205 [ImprovedTGNN active]
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 3202 Avg: 3.35639
+
+INTRA VC Cumulative Time: 0.55, Avg: 0.000171768
+
+Speed: SPEED_020 Total: 3202 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 40 Avg: 0.0419287
+
+INTER VC Cumulative Time: 2.35001, Avg: 0.0587503
+
+Speed: SPEED_020 Total: 40 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed HO Total: 1 Avg: 0.00104822
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 0, Avg: 0
+
+Total Virtual Cell: 6196 VC Size Ratio: 0.0649476
+
+VC For Speed: SPEED_020 VC Size: 6196 Vehicles: 4481 Avg: 1.38273
+
+VC For Speed: SPEED_2140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_4160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_6180 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_81100 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_101120 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_121140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_141160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_160PLUS VC Size: 0 Vehicles: 0 Avg: -nan
+
+testHODecisionByScalarCount: 52 testHODecisionBySpeedCount: 0 totalScalarParaConditionedPassed: 52 testMasterIDCount: 0 testTotalClosestTowerFound: 2205 [ImprovedTGNN active]
+
+Total Vehicle: 954 Simtime: 100
+
+---------------------------------------------INTRA-----------------------------------------------------
+
+INTRA VC HO Total: 12 Avg: 0.0125786
+
+INTRA VC Cumulative Time: 0.525, Avg: 0.04375
+
+Speed: SPEED_020 Total: 12 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+--------------------------------------------INTER/OUTSIDE VC----------------------------------------------
+
+INTER VC HO Total: 40 Avg: 0.0419287
+
+INTER VC Cumulative Time: 2.35001, Avg: 0.0587503
+
+Speed: SPEED_020 Total: 40 %: 1
+Speed: SPEED_2140 Total: 0 %: 0
+Speed: SPEED_4160 Total: 0 %: 0
+Speed: SPEED_6180 Total: 0 %: 0
+Speed: SPEED_81100 Total: 0 %: 0
+Speed: SPEED_101120 Total: 0 %: 0
+Speed: SPEED_121140 Total: 0 %: 0
+Speed: SPEED_141160 Total: 0 %: 0
+Speed: SPEED_160PLUS Total: 0 %: 0
+
+
+----------------------------------------------Failed HO-----------------------------------------------------
+Failed HO Total: 1 Avg: 0.00104822
+
+-------------------------------------------------Ping Pong---------------------------------------------------
+Ping Pong HO Total: 0, Avg: 0
+
+Total Virtual Cell: 6196 VC Size Ratio: 0.0649476
+
+VC For Speed: SPEED_020 VC Size: 6196 Vehicles: 4481 Avg: 1.38273
+
+VC For Speed: SPEED_2140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_4160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_6180 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_81100 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_101120 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_121140 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_141160 VC Size: 0 Vehicles: 0 Avg: -nan
+
+VC For Speed: SPEED_160PLUS VC Size: 0 Vehicles: 0 Avg: -nan
+
